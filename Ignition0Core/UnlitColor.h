@@ -1,0 +1,28 @@
+/**
+ * Author:	Varun Khambhata
+ * Created: 12.08.2023
+**/
+
+#ifndef __UNLITCOLOR__
+#define __UNLITCOLOR__
+
+#include <Ignition0Core/Material.h>
+
+class UnlitColor: public Material {
+private:
+	GLint uniR, uniG, uniB;
+
+public:
+	struct _uniforms{
+		float r,g,b;
+	} uniforms;
+
+	std::string fragmentShaderSource();
+	std::string vertexShaderSource();
+
+	UnlitColor(float r, float g, float b);
+	void initUniforms();
+	void onUniformsUpdate();
+};
+
+#endif
