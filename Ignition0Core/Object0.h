@@ -10,19 +10,24 @@
 #include <vector>
 #include <functional>
 
-#include <glm/ext/matrix_transform.hpp>
 #include <Ignition0Core/InternalIgnition0.h>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 class Object0 {
 private:
-	glm::mat4 Transformation = glm::mat4(1.0f);
 	glm::mat4 Projection 	 = glm::mat4(1.0f);
-	std::vector<m<Object0>> 		 child;
+	glm::mat4 Transformation = glm::mat4(1.0f);
+	glm::mat4 Translation    = glm::mat4(1.0f);
+	glm::mat4 Orientation    = glm::mat4(1.0f);
+	std::vector<m<Object0>> child;
 	std::function<void(Object0&)> onUpdate;
 
 protected:
 	glm::vec3 Position, Rotation;
 	m<Material> material = internal::Ignition0.missing;
+
+	void normalizeRotation();
 
 public:
 	virtual void onDraw() {};
@@ -38,12 +43,11 @@ public:
 	glm::mat4&  getTransformation();
 	glm::mat4&  getProjection();
 
-	void setPosition(float x, float y, float z);
-	void translate(float x, float y, float z);
-	void rotate(float x, float y, float z);
+	virtual void setPosition(float x, float y, float z);
+	virtual void translate(float x, float y, float z);
+	virtual void rotate(float x, float y, float z);
 
 	void setProjection(glm::mat4 projection);
-
 };
 
 #endif

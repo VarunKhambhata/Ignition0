@@ -1,9 +1,6 @@
 #include <Ignition0Core/UnlitColor.h>
 
 class UnlitNegative: public UnlitImage {
-private:
-	GLuint texture;
-
 public:
 	std::string fragmentShaderSource() {
 		return R"(

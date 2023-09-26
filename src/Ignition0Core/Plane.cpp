@@ -41,6 +41,4 @@ void Plane::onDraw() {
 	material->updateSharedUniforms();
 	glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    // glDisable(GL_DEPTH_TEST);
-	
 }

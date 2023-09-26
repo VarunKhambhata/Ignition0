@@ -8,7 +8,7 @@
 
 #include <Ignition0Core/Camera.h>
 
-Camera::Camera(float x, float y, float width, float height): background(glm::vec4(0)) {
+Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,-1), Up(0,1,0) {
 	glm::vec2 display = internal::Ignition0.displaySize();
 	vPosition.x = x; 				vSize.x = width;
 	vPosition.y = y;				vSize.y = height;
@@ -16,6 +16,8 @@ Camera::Camera(float x, float y, float width, float height): background(glm::vec
 	dPosition.y = y * display.y;	dSize.y = height * display.y;
 
 	material = internal::Ignition0.colorImage;
+
+	setPosition(0.0f,0.0f,0.0f);
 
 	// init framebuffer
 	glGenFramebuffers(1, &frameBuffer);
@@ -52,7 +54,7 @@ void Camera::open() {
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glViewport(0, 0, dSize.x, dSize.y);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);	
+	glDepthFunc(GL_LESS);
 	glClearColor(background.r, background.g, background.b, background.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -76,15 +78,47 @@ void Camera::reload() {
 	projection(FOV, near, far);
 }
 
+void Camera::updateTransformation() {    
+	glm::vec3 target = Position - Front;  
+	lookAt(target);
+}
+
 void Camera::setPosition(float x, float y, float z) {
 	Position.x = x;
 	Position.y = y;
 	Position.z = z;
 
-	glm::vec3 Front = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 Up    = glm::vec3(0.0f, 1.0f, 0.0f);
-	getTransformation() = glm::lookAt(Position, Position + Front, Up);
+	updateTransformation();
 }
+
+void Camera::translate(float x, float y, float z) {
+	Position.x += x;
+	Position.y += y;
+	Position.z += z;
+
+	updateTransformation();
+}
+
+void Camera::rotate(float x, float y, float z) {
+	Rotation.x += x;
+	Rotation.y += y;
+	Rotation.z += z;	
+	normalizeRotation();
+
+	if(x) Front = glm::rotate(Front, glm::radians(x), glm::vec3(1,0,0));
+	if(y) Front = glm::rotate(Front, glm::radians(y), glm::vec3(0,1,0));
+	if(z) Up    = glm::rotate(Up, glm::radians(z), glm::vec3(0,0,-1));
+
+	updateTransformation();
+}
+
+void Camera::lookAt(glm::vec3 target) {
+	glm::vec3 Pos = Position;
+	Pos.z = -Pos.z;
+	target.z = -target.z;
+	getTransformation() = glm::lookAt(Pos, target, Up);
+}
+
 
 void Camera::projection(float FOV, float near, float far) {
 	this->FOV = FOV;

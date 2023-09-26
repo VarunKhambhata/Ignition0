@@ -10,8 +10,6 @@
 
 class Camera: public Object0 {
 private:
-	glm::vec3 Position;
-
 	glm::vec2  vPosition, vSize;
 	glm::ivec2 dPosition, dSize;
 	glm::vec4  background;
@@ -22,6 +20,10 @@ private:
 
 	float FOV, near, far;
 
+	glm::vec3 Front, Up;
+
+	void updateTransformation();
+
 public:
 	Camera(float x = 0, float y = 0, float width = 1, float height = 1);
 	~Camera();
@@ -29,7 +31,12 @@ public:
 	void open();
 	void reload();
 
-	void setPosition(float x, float y, float z);
+	void setPosition(float x, float y, float z) override;
+	void translate(float x, float y, float z) override;
+	void rotate(float x, float y, float z) override;
+
+	void lookAt(glm::vec3 target);
+
 	void projection(float FOV, float near, float far);
 	void setBackground(float r, float g, float b, float a = 1);
 

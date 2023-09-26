@@ -19,6 +19,7 @@ public:
 	UnlitImage(bool init = true);
 	void onUsed();
 	void setTexture(GLuint tex);
+	void setTexture(const char* imgFile);
 	void initUniforms();
 };
 
