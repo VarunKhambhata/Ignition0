@@ -21,32 +21,30 @@ private:
 	float FOV, near, far;
 
 	glm::vec3 Front, Up;
+	glm::vec3 rotationState;
 
-	void updateTransformation();
+protected:
+	void applyStateUpdate() override final;
 
 public:
+	GLuint 	   getRenderedTexture();
+	GLuint 	   getRenderedDepth();
+	glm::vec2  getViewPosition();
+	glm::vec2  getViewSize();
+	glm::ivec2 getDisplayPosition();
+	glm::ivec2 getDisplaySize();	
+
 	Camera(float x = 0, float y = 0, float width = 1, float height = 1);
 	~Camera();
 
 	void open();
 	void reload();
 
-	void setPosition(float x, float y, float z) override;
-	void translate(float x, float y, float z) override;
-	void rotate(float x, float y, float z) override;
-
-	void lookAt(glm::vec3 target);
-
 	void projection(float FOV, float near, float far);
 	void setBackground(float r, float g, float b, float a = 1);
 
-	glm::vec2  getViewPosition();
-	glm::vec2  getViewSize();
-	glm::ivec2 getDisplayPosition();
-	glm::ivec2 getDisplaySize();
-
-	GLuint getRenderedTexture();
-	GLuint getRenderedDepth();
+	void lookAt(glm::vec3 target);
+	void rotate(float x, float y, float z) override;
 };
 
 #endif

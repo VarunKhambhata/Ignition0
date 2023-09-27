@@ -8,6 +8,14 @@
 
 #include <Ignition0Core/Camera.h>
 
+
+GLuint 	   Camera::getRenderedTexture()	{ return colorBuffer; }
+GLuint 	   Camera::getRenderedDepth()   { return depthBuffer; }
+glm::vec2  Camera::getViewPosition()    { return vPosition;   }
+glm::vec2  Camera::getViewSize() 	    { return vSize;		  }
+glm::ivec2 Camera::getDisplayPosition() { return dPosition;	  }
+glm::ivec2 Camera::getDisplaySize()     { return dSize;		  }
+
 Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,-1), Up(0,1,0) {
 	glm::vec2 display = internal::Ignition0.displaySize();
 	vPosition.x = x; 				vSize.x = width;
@@ -16,8 +24,6 @@ Camera::Camera(float x, float y, float width, float height): background(0,0,0,1)
 	dPosition.y = y * display.y;	dSize.y = height * display.y;
 
 	material = internal::Ignition0.colorImage;
-
-	setPosition(0.0f,0.0f,0.0f);
 
 	// init framebuffer
 	glGenFramebuffers(1, &frameBuffer);
@@ -57,6 +63,11 @@ void Camera::open() {
 	glDepthFunc(GL_LESS);
 	glClearColor(background.r, background.g, background.b, background.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if(STATE) {
+		applyStateUpdate();
+		STATE = 0;
+	}
 }
 
 void Camera::reload() {
@@ -78,48 +89,6 @@ void Camera::reload() {
 	projection(FOV, near, far);
 }
 
-void Camera::updateTransformation() {    
-	glm::vec3 target = Position - Front;  
-	lookAt(target);
-}
-
-void Camera::setPosition(float x, float y, float z) {
-	Position.x = x;
-	Position.y = y;
-	Position.z = z;
-
-	updateTransformation();
-}
-
-void Camera::translate(float x, float y, float z) {
-	Position.x += x;
-	Position.y += y;
-	Position.z += z;
-
-	updateTransformation();
-}
-
-void Camera::rotate(float x, float y, float z) {
-	Rotation.x += x;
-	Rotation.y += y;
-	Rotation.z += z;	
-	normalizeRotation();
-
-	if(x) Front = glm::rotate(Front, glm::radians(x), glm::vec3(1,0,0));
-	if(y) Front = glm::rotate(Front, glm::radians(y), glm::vec3(0,1,0));
-	if(z) Up    = glm::rotate(Up, glm::radians(z), glm::vec3(0,0,-1));
-
-	updateTransformation();
-}
-
-void Camera::lookAt(glm::vec3 target) {
-	glm::vec3 Pos = Position;
-	Pos.z = -Pos.z;
-	target.z = -target.z;
-	getTransformation() = glm::lookAt(Pos, target, Up);
-}
-
-
 void Camera::projection(float FOV, float near, float far) {
 	this->FOV = FOV;
 	this->near = near;
@@ -135,10 +104,30 @@ void Camera::setBackground(float r, float g, float b, float a) {
 	background.a = a;
 }
 
-glm::vec2  Camera::getViewPosition()    { return vPosition;   }
-glm::vec2  Camera::getViewSize() 	    { return vSize;		  }
-glm::ivec2 Camera::getDisplayPosition() { return dPosition;	  }
-glm::ivec2 Camera::getDisplaySize()     { return dSize;		  }
+void Camera::lookAt(glm::vec3 target) {
+	glm::vec3 Pos = Position;
+	Pos.z = -Pos.z;
+	target.z = -target.z;
+	getTransformation() = glm::lookAt(Pos, target, Up);
+}
 
-GLuint Camera::getRenderedTexture()		{ return colorBuffer; }
-GLuint Camera::getRenderedDepth()   	{ return depthBuffer; }
+void Camera::rotate(float x, float y, float z) {
+	Rotation.x += rotationState.x = x;
+	Rotation.y += rotationState.y = y;
+	Rotation.z += rotationState.z = z;
+	normalizeRotation();
+
+	STATE |= ROTATION_CHANGED;
+}
+
+void Camera::applyStateUpdate() {
+	if(STATE & ROTATION_CHANGED) {
+		if(rotationState.x) Front = glm::rotate(Front, glm::radians(rotationState.x), glm::vec3(1,0, 0));
+		if(rotationState.y) Front = glm::rotate(Front, glm::radians(rotationState.y), glm::vec3(0,1, 0));
+		if(rotationState.z) Up    = glm::rotate(Up,    glm::radians(rotationState.z), glm::vec3(0,0,-1));
+
+		rotationState.x = rotationState.y = rotationState.z = 0;
+	}
+	glm::vec3 target = Position - Front;
+	lookAt(target);
+}
