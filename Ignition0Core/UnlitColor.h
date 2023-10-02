@@ -6,9 +6,9 @@
 #ifndef __UNLITCOLOR__
 #define __UNLITCOLOR__
 
-#include <Ignition0Core/Material.h>
+#include <Ignition0Core/Material0.h>
 
-class UnlitColor: public Material {
+class UnlitColor: public Material0 {
 private:
 	GLint uniR, uniG, uniB;
 

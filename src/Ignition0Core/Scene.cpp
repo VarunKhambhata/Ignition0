@@ -7,13 +7,13 @@
 #include <Ignition0Core/Scene.h>
 #include <Ignition0Core/Logger0.h>
 
-Scene::Scene(): screen(Plane()) {}
+Scene::Scene(): screen(Plane()), Projection(1) {}
 
 void Scene::clear() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.f, 0.f, 0.f, 0.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+}
 
 void Scene::updateFrame(Camera &c) {
 	glm::vec2 size = c.getDisplaySize();
@@ -26,7 +26,7 @@ void Scene::updateFrame(Camera &c) {
 	m<UnlitImage> mat = std::static_pointer_cast<UnlitImage>(c.getMaterial());
 	mat->setTexture(c.getRenderedTexture());
 	screen.setMaterial(mat);
-	screen.update(proj);
+	screen.draw();
 }
 
 void Scene::add(m<Object0> obj) {
@@ -45,6 +45,7 @@ void Scene::update() {
 		glm::mat4 proj = cam->getProjection() * cam->getTransformation();
 		for(m<Object0> obj: RenderObjects) {
 			obj->update(proj);
+			obj->draw();
 		}
 		updateFrame(*cam.get());
 	}

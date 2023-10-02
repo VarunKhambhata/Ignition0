@@ -6,9 +6,9 @@
 #ifndef __UNLITIMAGE__
 #define __UNLITIMAGE__
 
-#include <Ignition0Core/Material.h>
+#include <Ignition0Core/Material0.h>
 
-class UnlitImage: public Material {
+class UnlitImage: public Material0 {
 private:
 	GLuint texture;
 

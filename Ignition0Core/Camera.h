@@ -3,8 +3,8 @@
  * Created: 12.08.2023
 **/
 
-#ifndef __CAMERA__
-#define __CAMERA__
+#ifndef __CAMERA0__
+#define __CAMERA0__
 
 #include <Ignition0Core/Object0.h>
 
@@ -27,23 +27,23 @@ protected:
 	void applyStateUpdate() override final;
 
 public:
+	Camera(float x = 0, float y = 0, float width = 1, float height = 1);
+	~Camera();
+
 	GLuint 	   getRenderedTexture();
 	GLuint 	   getRenderedDepth();
 	glm::vec2  getViewPosition();
 	glm::vec2  getViewSize();
 	glm::ivec2 getDisplayPosition();
-	glm::ivec2 getDisplaySize();	
-
-	Camera(float x = 0, float y = 0, float width = 1, float height = 1);
-	~Camera();
+	glm::ivec2 getDisplaySize();
 
 	void open();
 	void reload();
 
+	void lookAt(glm::vec3 target);
 	void projection(float FOV, float near, float far);
 	void setBackground(float r, float g, float b, float a = 1);
 
-	void lookAt(glm::vec3 target);
 	void rotate(float x, float y, float z) override;
 };
 

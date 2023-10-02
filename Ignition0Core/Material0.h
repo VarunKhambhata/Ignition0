@@ -3,12 +3,12 @@
  * Created: 12.08.2023
 **/
 
-#ifndef __MATERIAL__
-#define __MATERIAL__
+#ifndef __MATERIAL0__
+#define __MATERIAL0__
 
 #include <GL/gl.h>
 
-class Material {
+class Material0 {
 private:
 	unsigned int shaderProgram;
 	std::string vertexShader, fragmentShader;

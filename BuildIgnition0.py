@@ -9,10 +9,11 @@ src = [
 	'Ignition0.cpp',	
 	'Ignition0Core/Camera.cpp',	
 	'Ignition0Core/Cube.cpp',
-	'Ignition0Core/Material.cpp',
+	'Ignition0Core/Material0.cpp',
 	'Ignition0Core/Object0.cpp',
 	'Ignition0Core/Plane.cpp',
 	'Ignition0Core/Scene.cpp',
+	'Ignition0Core/Script0.cpp',
 	'Ignition0Core/UnlitColor.cpp',
 	'Ignition0Core/UnlitImage.cpp',
 ]

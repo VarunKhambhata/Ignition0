@@ -3,7 +3,6 @@
  * Created: 19.08.2023
 **/
 
-
 #ifndef __CUBE__
 #define __CUBE__
 
@@ -16,7 +15,7 @@ private:
 public:
 	Cube();
 	~Cube();
-	void onDraw();
+	void onDraw() override;
 };
 
 #endif

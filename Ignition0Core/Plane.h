@@ -15,7 +15,7 @@ private:
 public:
 	Plane();
 	~Plane();
-	void onDraw();
+	void onDraw() override;
 };
 
 #endif

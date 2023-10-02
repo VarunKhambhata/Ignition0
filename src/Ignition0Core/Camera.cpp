@@ -89,6 +89,14 @@ void Camera::reload() {
 	projection(FOV, near, far);
 }
 
+void Camera::lookAt(glm::vec3 target) {
+	glm::vec3 Pos = Position;
+	Pos.z = -Pos.z;
+	target.z = -target.z;
+	getTransformation() = glm::lookAt(Pos, target, Up);
+	STATE &= !ROTATION_CHANGED;
+}
+
 void Camera::projection(float FOV, float near, float far) {
 	this->FOV = FOV;
 	this->near = near;
@@ -102,13 +110,6 @@ void Camera::setBackground(float r, float g, float b, float a) {
 	background.g = g;
 	background.b = b;
 	background.a = a;
-}
-
-void Camera::lookAt(glm::vec3 target) {
-	glm::vec3 Pos = Position;
-	Pos.z = -Pos.z;
-	target.z = -target.z;
-	getTransformation() = glm::lookAt(Pos, target, Up);
 }
 
 void Camera::rotate(float x, float y, float z) {

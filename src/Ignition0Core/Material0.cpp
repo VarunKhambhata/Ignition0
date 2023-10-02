@@ -9,10 +9,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <Ignition0Core/Logger0.h>
 
-#include <Ignition0Core/Material.h>
+#include <Ignition0Core/Material0.h>
 #include <Ignition0Core/InternalIgnition0.h>
 
-unsigned int Material::compileShader(std::string source, GLuint type) {
+unsigned int Material0::compileShader(std::string source, GLuint type) {
 	unsigned int shader = glCreateShader(type);
 
 	const char *sourceCS = source.c_str();
@@ -33,7 +33,7 @@ unsigned int Material::compileShader(std::string source, GLuint type) {
     return shader;
 }
 
-void Material::build() {
+void Material0::build() {
 	unsigned int vertexShader   = compileShader(vertexShaderSource(), GL_VERTEX_SHADER);
 	unsigned int fragmentShader = compileShader(fragmentShaderSource(), GL_FRAGMENT_SHADER);
 
@@ -53,20 +53,20 @@ void Material::build() {
 }
 
 
-void Material::use() {
+void Material0::use() {
 	glUseProgram(shaderProgram);
 	onUsed();
 }
 
-GLint Material::getLocation(const char* s) { 
+GLint Material0::getLocation(const char* s) { 
 	return glGetUniformLocation(shaderProgram, s);
 }
 
-void Material::updateUniforms() {
+void Material0::updateUniforms() {
 	onUniformsUpdate();
 }
 
-void Material::updateSharedUniforms() {
+void Material0::updateSharedUniforms() {
 	if(sharedUniforms.projection_pair.second) {
 		glUniformMatrix4fv(sharedUniforms.projection_pair.first, 1, GL_FALSE, glm::value_ptr(*sharedUniforms.projection_pair.second));
 	}

@@ -15,7 +15,7 @@ private:
 	std::vector<m<Object0>> RenderObjects;
 	std::vector<m<Camera>> Cameras;
 	Plane screen;
-	glm::mat4 proj = glm::mat4(1.0f);
+	glm::mat4 Projection;
 	glm::ivec2 drawSize;
 
 	void clear();
