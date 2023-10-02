@@ -3,6 +3,8 @@
  # Created: 12.08.2023
 ###
 
+build_threads = 4
+
 link = ['glfw', 'GL', 'GLEW']
 
 src = [	
@@ -18,14 +20,19 @@ src = [
 	'Ignition0Core/UnlitImage.cpp',
 ]
 
-build_threads = 0
-
 #############################################################################################
 import os
+import re
 import sys
 import math
 import getopt
 import os.path
+import argparse
+import threading
+
+thread_exception = threading.Event()
+thread_lock = threading.Lock()
+
 
 def makeIgnition0GCC(cpp, o, link):
 	return 'g++ -c src/' + cpp + ' -o' + o + r' -I . -I ./Ignition0Core/glm -L.' + link
@@ -48,48 +55,68 @@ def distributeJobs():
 	start = 0
 	end  = 0
 	compile_thread = []
+	linkGCC = makeLinkGCC()
+
 	for i in range(0,build_threads):
 		start = end
 		if rem > 0:
 			end += 1
 			rem -= 1
 		end += part
-		print(start, end)
+		t = threading.Thread(target=buildObjs, args=(start, end, linkGCC))
+		t.start()
+		compile_thread.append(t)
+
+	oLibList = ' '.join(map(str, range(0, end)))
+	return compile_thread, oLibList
+
+def buildObjs(start, end, linkGCC):	
+	try:
+		for i in range(start, end):
+			if thread_exception.is_set(): return
+			with thread_lock: print('-' + src[i])
+			run(makeIgnition0GCC(src[i], str(i), linkGCC))
+	except:
+		thread_exception.set()
+
 
 def buildIgnition0():
-	oLibList = ''
+	print("\nBUILDING ...")
 	try:
-		print("BUILDING ...")
-		linkGCC = makeLinkGCC()
-
-		for o, cpp in enumerate(src):
-			print(cpp)
-			o = str(o)
-			oLibList += o + ' '
-			run(makeIgnition0GCC(cpp, o, linkGCC))
+		threads, oLibList = distributeJobs()
+		for t in threads: t.join()
+		if thread_exception.is_set(): raise Exception()
 		run('ar rcs libIgnition0.a ' + oLibList)
 		print('BUILT libIgnition0.a')
 	except:
 		print("BUILD FAILED")
 	finally:
-		run('rm ' + oLibList)
+		run('rm -f ' + oLibList)	
 
 
 
-### main ###
-argumentList = sys.argv[1:]
-
-
-if len(argumentList) > 0:
-	if not os.path.isfile('libIgnition0.a'):
-		buildIgnition0()	
-	try:
-		print('BUILDING APPLICATION ...')
-		run('g++ ' + argumentList[0] + ' -o ' + argumentList[0].split('.cpp')[0] + r' -I./ -I./Ignition0Core/glm -L. -lIgnition0' + makeLinkGCC() + ' -no-pie')
-		print('APPLICATION BUILD FINISHED')
-		run('./'+argumentList[0].split('.cpp')[0])
-	except:
-		print('APPLICATION BUILD FAILED')
-
-else:
+##### main #####
+if len(sys.argv) == 1:
 	buildIgnition0()
+else:
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-c', action='store_true', help='clean build')
+	parser.add_argument('-a', metavar='', help='cpp file for Ignition0 application')
+	args = parser.parse_args()
+
+	if args.c:
+		buildIgnition0()
+	if args.a:
+		if not os.path.isfile('libIgnition0.a'):
+			buildIgnition0()
+		try:
+			print('\nBUILDING APPLICATION ...')
+			run('g++ ' + args.a + ' -o ' + args.a.split('.cpp')[0] + r' -I./ -I./Ignition0Core/glm -L. -lIgnition0' + makeLinkGCC() + ' -no-pie')
+			print('APPLICATION BUILD FINISHED')
+
+			pattern = r'^(.+)\/([^\/]+)$'
+			match = re.match(pattern, args.a)
+			os.chdir(match.group(1))
+			run('./' + match.group(2).split('.cpp')[0])
+		except:
+			print('APPLICATION BUILD FAILED')
