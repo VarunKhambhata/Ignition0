@@ -30,7 +30,7 @@ protected:
 	glm::vec3 Position, Rotation;
 	m<Material0> material = internal::Ignition0.missing;
 
-	uint8_t STATE = 0;
+	uint8_t STATE;
 	enum {
 		POSITION_CHANGED   = 1,
 		ROTATION_CHANGED   = 2,
@@ -50,9 +50,9 @@ public:
 	void         setMaterial(m<Material0> mat);
 
 	m<Material0>  getMaterial();
-	glm::vec3    getPosition();
-	glm::vec3    getRotation();
-	glm::mat4&   getTransformation();
+	glm::vec3     getPosition();
+	glm::vec3     getRotation();
+	glm::mat4&    getTransformation();
 
 	virtual void onDraw() {};
 	virtual void setPosition(float x, float y, float z);

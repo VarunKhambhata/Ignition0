@@ -18,6 +18,7 @@ src = [
 	'Ignition0Core/Script0.cpp',
 	'Ignition0Core/UnlitColor.cpp',
 	'Ignition0Core/UnlitImage.cpp',
+	'Ignition0Supplement/VoidMemory0.cpp',
 ]
 
 #############################################################################################

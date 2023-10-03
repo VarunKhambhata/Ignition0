@@ -6,8 +6,17 @@
 #include <GL/glew.h>
 
 #include <Ignition0Core/Cube.h>
+#include <Ignition0Supplement/VoidMemory0.h>
+
+static VoidMemory0 cubeSharedMem;
 
 Cube::Cube() {
+    if(!cubeSharedMem++) {
+        VAO = static_cast<unsigned int*>(cubeSharedMem.getMemory())[0];
+        VBO = static_cast<unsigned int*>(cubeSharedMem.getMemory())[1];
+        return;
+    }
+
 	float cubeVertices[] = {
         // positions        // texCoords
         -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
@@ -66,12 +75,17 @@ Cube::Cube() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);    
     // texture coord attribute
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));    
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    cubeSharedMem.setMemory(new unsigned int[2] {VAO, VBO});
 }
 
 Cube::~Cube() {
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
+    if(!cubeSharedMem--) {
+        glDeleteBuffers(1, &VBO);
+        glDeleteVertexArrays(1, &VAO);
+        delete[] static_cast<unsigned int*>(cubeSharedMem.getMemory());
+    }
 }
 
 void Cube::onDraw() {

@@ -7,16 +7,16 @@
 
 #include <Ignition0Core/Object0.h>
 
-void 		Object0::add(m<Object0> obj) 							 { child.push_back(obj); 								}
-void 		Object0::setProjection(glm::mat4 projection) 			 { Projection = projection;	STATE|=PROJECTION_CHANGED;	}
-void 		Object0::setMaterial(m<Material0> mat) 					 { material = mat?mat:internal::Ignition0.missing; 		}
-m<Material0> Object0::getMaterial()  						  		 { return material;   									}
-glm::mat4&  Object0::getProjection() 						  		 { return Projection; 									}
-glm::mat4&  Object0::getTransformation() 					  		 { return Transformation; 								}
-glm::vec3 	Object0::getPosition() 							  		 { return Position; 		 							}
-glm::vec3 	Object0::getRotation() 							  		 { return Rotation; 		 							}
+void 		 Object0::add(m<Object0> obj) 					{ child.push_back(obj); 								}
+void 		 Object0::setProjection(glm::mat4 projection) 	{ Projection = projection;	STATE|=PROJECTION_CHANGED;	}
+void 		 Object0::setMaterial(m<Material0> mat) 		{ material = mat?mat:internal::Ignition0.missing; 		}
+m<Material0> Object0::getMaterial()  						{ return material;   									}
+glm::mat4&   Object0::getProjection() 						{ return Projection; 									}
+glm::mat4&   Object0::getTransformation() 					{ return Transformation; 								}
+glm::vec3 	 Object0::getPosition() 						{ return Position; 		 								}
+glm::vec3 	 Object0::getRotation() 						{ return Rotation; 		 								}
 
-Object0::Object0(): Projection(1), Transformation(1), Translation(1), Orientation(1) {}
+Object0::Object0(): Projection(1), Transformation(1), Translation(1), Orientation(1), Position(0), Rotation(0), STATE(0) {}
 
 void Object0::draw() {
 	onDraw();	

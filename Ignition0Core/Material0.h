@@ -11,7 +11,6 @@
 class Material0 {
 private:
 	unsigned int shaderProgram;
-	std::string vertexShader, fragmentShader;
 	static unsigned int compileShader(std::string source, GLuint type);
 
 public:

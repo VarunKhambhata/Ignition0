@@ -16,7 +16,7 @@ glm::vec2  Camera::getViewSize() 	    { return vSize;		  }
 glm::ivec2 Camera::getDisplayPosition() { return dPosition;	  }
 glm::ivec2 Camera::getDisplaySize()     { return dSize;		  }
 
-Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,-1), Up(0,1,0) {
+Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,-1), Up(0,1,0), rotationState(0) {
 	glm::vec2 display = internal::Ignition0.displaySize();
 	vPosition.x = x; 				vSize.x = width;
 	vPosition.y = y;				vSize.y = height;

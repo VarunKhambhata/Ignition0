@@ -6,8 +6,17 @@
 #include <GL/glew.h>
 
 #include <Ignition0Core/Plane.h>
+#include <Ignition0Supplement/VoidMemory0.h>
+
+static VoidMemory0 planeSharedMem;
 
 Plane::Plane() {
+    if(!planeSharedMem++){
+        VAO = static_cast<unsigned int*>(planeSharedMem.getMemory())[0];
+        VBO = static_cast<unsigned int*>(planeSharedMem.getMemory())[1];
+        return;
+    }
+
 	float quadVertices[] = {
         // positions   // texCoords
         -1.0f,  1.0f,  0.0f, 1.0f,
@@ -28,11 +37,16 @@ Plane::Plane() {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    planeSharedMem.setMemory(new unsigned int[2] {VAO, VBO});
 }
 
 Plane::~Plane() {
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
+    if(!planeSharedMem--) {
+        glDeleteBuffers(1, &VBO);
+        glDeleteVertexArrays(1, &VAO);
+        delete[] static_cast<unsigned int*>(planeSharedMem.getMemory());
+    }
 }
 
 void Plane::onDraw() {
