@@ -19,11 +19,10 @@
 
 #include <GLFW/glfw3.h>
 #include <Ignition0Core/Scene.h>
-#include <Ignition0Core/InternalIgnition0.h>
 
 namespace ______________ {
 	namespace ________ {
-		namespace _0{
+		namespace _0 {
 				class __engine__ {
 				private:
 					static std::string title;

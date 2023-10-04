@@ -13,6 +13,8 @@
 #include <GL/glew.h>
 
 #include <Ignition0.h>
+#include <Ignition0Core/IgnitionInputs.h>
+#include <Ignition0Core/InternalIgnition0.h>
 #include <Ignition0Core/Logger0.h>
 
 namespace ______________ {
@@ -73,15 +75,17 @@ namespace ______________ {
 			}
 
 			void i0::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-				// Logger0("Key: " << (char)key << "-" <<action);
+				if(Keys.map[key])
+					*Keys.map[key] = action;
 			}
 
-			void i0::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-				// Logger0("Cursor: "<<xpos << ", " <<ypos);
+			void i0::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {				
+				Mouse.pos(static_cast<int>(xpos), static_cast<int>(ypos));
 			}
 
 			void i0::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-				// Logger0("Mouse: " << button <<"-"<<action);
+				Logger0("mouse;" << button);
+				*Mouse.keyMap[button] = action;
 			}
 
 			void i0::renderLoop() {
@@ -89,6 +93,8 @@ namespace ______________ {
 				while (!glfwWindowShouldClose(window)) {
 			        currentScene->update();
 					glfwSwapBuffers(window);
+
+					Mouse.clearDelta();
 			        glfwPollEvents();
 				}
 				Logger0("Rendering Finished");
@@ -131,3 +137,7 @@ namespace internal {
 		return _displaySize; 
 	}
 }
+
+
+inputs::Keyset Keys;
+inputs::MouseDevice Mouse;

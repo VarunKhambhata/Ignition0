@@ -19,7 +19,7 @@ glm::vec3 	 Object0::getRotation() 						{ return Rotation; 		 								}
 Object0::Object0(): Projection(1), Transformation(1), Translation(1), Orientation(1), Position(0), Rotation(0), STATE(0) {}
 
 void Object0::draw() {
-	onDraw();	
+	onDraw();
 	for(m<Object0> c: child) c->draw();
 }
 

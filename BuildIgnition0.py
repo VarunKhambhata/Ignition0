@@ -11,6 +11,7 @@ src = [
 	'Ignition0.cpp',	
 	'Ignition0Core/Camera.cpp',	
 	'Ignition0Core/Cube.cpp',
+	'Ignition0Core/IgnitionInputs.cpp',
 	'Ignition0Core/Material0.cpp',
 	'Ignition0Core/Object0.cpp',
 	'Ignition0Core/Plane.cpp',
