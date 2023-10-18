@@ -20,11 +20,10 @@ private:
 
 	float FOV, near, far;
 
-	glm::vec3 Front, Up;
-	glm::vec3 rotationState;
+	glm::vec3 Front, Right, Up;
 
 protected:
-	void applyStateUpdate() override final;
+	void applyStateUpdate() override final;	
 
 public:
 	Camera(float x = 0, float y = 0, float width = 1, float height = 1);
@@ -40,11 +39,12 @@ public:
 	void open();
 	void reload();
 
-	void lookAt(glm::vec3 target);
+	void lookAt(float x, float y, float z);
 	void projection(float FOV, float near, float far);
 	void setBackground(float r, float g, float b, float a = 1);
 
 	void rotate(float x, float y, float z) override;
+	void translate(float x, float y, float z) override;
 };
 
 #endif

@@ -42,6 +42,7 @@ void Scene::update() {
 	for(m<Camera> cam: Cameras) {
 		cam->open();
 		cam->update();
+		cam->draw();
 		glm::mat4 proj = cam->getProjection() * cam->getTransformation();
 		for(m<Object0> obj: RenderObjects) {
 			obj->update(proj);

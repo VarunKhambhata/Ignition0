@@ -84,7 +84,6 @@ namespace ______________ {
 			}
 
 			void i0::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-				Logger0("mouse;" << button);
 				*Mouse.keyMap[button] = action;
 			}
 
