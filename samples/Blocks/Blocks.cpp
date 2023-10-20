@@ -41,7 +41,7 @@ m<Scene> buildScene() {
 	UI->setPosition(3.2,-1.4,8);
 	UI->rotate(30,45,5);
 	UI->setMaterial(controls);
-	cam->add(UI);	
+	cam->add(UI);
 
 	for(int i=0; i< 5; i++) {
 		for(int j=0; j < 5; j++) {

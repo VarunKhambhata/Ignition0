@@ -81,7 +81,6 @@ namespace inputs {
 		MouseDevice();
 
 		friend class ______________::________::_0::__engine__;
-
 	};
 }
 

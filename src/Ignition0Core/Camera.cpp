@@ -16,14 +16,12 @@ glm::vec2  Camera::getViewSize() 	    { return vSize;		  }
 glm::ivec2 Camera::getDisplayPosition() { return dPosition;	  }
 glm::ivec2 Camera::getDisplaySize()     { return dSize;		  }
 
-Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,1), Up(0,1,0) {
+Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,1), Up(0,1,0), Right(1,0,0) {
 	glm::vec2 display = internal::Ignition0.displaySize();
 	vPosition.x = x; 				vSize.x = width;
 	vPosition.y = y;				vSize.y = height;
 	dPosition.x = x * display.x;	dSize.x = width  * display.x;
 	dPosition.y = y * display.y;	dSize.y = height * display.y;
-
-	Right = glm::normalize(glm::cross(Up, Front));
 
 	material = internal::Ignition0.colorImage;
 
@@ -93,11 +91,14 @@ void Camera::reload() {
 
 void Camera::lookAt(float x, float y, float z) {
 	Front = glm::normalize(glm::vec3(x,y,z) - Position);
-	Right = glm::normalize(glm::cross(Up, Front));
+	Right = glm::normalize(glm::cross(glm::vec3(0,1,0), Front));
+	Up    = glm::rotate(glm::normalize(glm::cross(Front, Right)), glm::radians(Rotation.z), Front);
 
-	Rotation.x = glm::degrees(asin(Front.y));
-	Rotation.y = glm::degrees( atan2(Front.x,Front.z));
+	Rotation.x = glm::degrees(asin(-Front.y));
+	Rotation.y = glm::degrees(atan2(Front.x,Front.z));
 
+	if(Rotation.x >  89) Rotation.x = 89;
+	if(Rotation.x < -89) Rotation.x = -89;
 	normalizeRotation();
 
 	STATE |= ROTATION_CHANGED;
@@ -119,6 +120,8 @@ void Camera::setBackground(float r, float g, float b, float a) {
 }
 
 void Camera::rotate(float x, float y, float z) {
+	if(!(x || y || z)) return;	
+
 	Rotation.x += x;
 	Rotation.y += y;
 	Rotation.z += z;
@@ -127,12 +130,12 @@ void Camera::rotate(float x, float y, float z) {
 	if(Rotation.x < -89) Rotation.x = -89;
 	normalizeRotation();
 
-
 	Front.z = cos(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));
-    Front.y = sin(glm::radians(Rotation.x));
-    Front.x = sin(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));    
-    Front = glm::normalize(Front);    
-    Right = glm::normalize(glm::cross(Up, Front));
+    Front.y = sin(glm::radians(-Rotation.x));
+    Front.x = sin(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));
+    Front   = glm::normalize(Front);
+    Right   = glm::normalize(glm::cross(glm::vec3(0,1,0),Front));
+    Up      = glm::rotate(glm::normalize(glm::cross(Front, Right)), glm::radians(Rotation.z), Front);
 
 	STATE |= ROTATION_CHANGED;
 }
@@ -146,11 +149,12 @@ void Camera::translate(float x, float y, float z) {
 }
 
 void Camera::applyStateUpdate() {
-	glm::vec3 target = Position + Front;
-
 	// look at target
-	glm::vec3 Pos = Position;
-	Pos.z = -Pos.z;
-	target.z = -target.z;
-	getTransformation() = glm::lookAt(Pos, target, Up);
+	glm::vec3 pos    = Position;
+	glm::vec3 target = Position + Front;
+	glm::vec3 up 	 = Up;
+	
+	pos.z = -pos.z; target.z = -target.z; up.z = -up.z;
+
+	getTransformation() = glm::lookAt(pos, target, up);
 }
