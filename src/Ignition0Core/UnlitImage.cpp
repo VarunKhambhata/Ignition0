@@ -12,6 +12,10 @@
 #include <Ignition0Core/stb_image.h>
 #include <Ignition0Core/Logger0.h>
 
+#include <Ignition0Supplement/VoidMemory0.h>
+
+static VoidMemory0 uiSharedMem;
+
 std::string UnlitImage::vertexShaderSource() {
 	return R"(
 		#version 330 core
@@ -43,7 +47,20 @@ std::string UnlitImage::fragmentShaderSource() {
 }
 
 UnlitImage::UnlitImage(bool init) {
+	if(!uiSharedMem++) {
+		setShaderProgram(static_cast<unsigned int*>(uiSharedMem.getMemory())[0]);
+		sharedUniforms.projection(static_cast<unsigned int*>(uiSharedMem.getMemory())[1]);
+		return;
+	}
+
 	init? build() : void();
+	uiSharedMem.setMemory(new unsigned int[2] {getShaderProgram(), (unsigned int)getLocation("projection")});
+}
+
+UnlitImage::~UnlitImage() {
+	if(!uiSharedMem--) {
+		destroy();
+    }
 }
 
 void UnlitImage::onUsed() {

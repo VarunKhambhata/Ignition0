@@ -17,6 +17,7 @@ public:
 	std::string vertexShaderSource();
 
 	UnlitImage(bool init = true);
+	~UnlitImage();
 	void onUsed();
 	void setTexture(GLuint tex);
 	void setTexture(const char* imgFile);

@@ -9,6 +9,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Ignition0Core/UnlitColor.h>
+#include <Ignition0Supplement/VoidMemory0.h>
+
+static VoidMemory0 ucSharedMem;
+UnlitColor*  currentUsedMaterial;
 
 std::string UnlitColor::vertexShaderSource() {
 	return R"(
@@ -35,10 +39,34 @@ std::string UnlitColor::fragmentShaderSource() {
 }
 
 UnlitColor::UnlitColor(float r, float g, float b) {
-	build();
 	uniforms.r = r;
 	uniforms.g = g;
 	uniforms.b = b;
+
+	if(!ucSharedMem++) {
+		setShaderProgram(static_cast<unsigned int*>(ucSharedMem.getMemory())[0]);
+		sharedUniforms.projection(static_cast<unsigned int*>(ucSharedMem.getMemory())[1]);
+		uniR = static_cast<unsigned int*>(ucSharedMem.getMemory())[2];
+		uniG = static_cast<unsigned int*>(ucSharedMem.getMemory())[3];
+		uniB = static_cast<unsigned int*>(ucSharedMem.getMemory())[4];
+		return;
+	}
+
+	build();
+	ucSharedMem.setMemory(new unsigned int[5] {getShaderProgram(), (unsigned int)getLocation("projection"), 
+							(unsigned int)getLocation("r"), (unsigned int)getLocation("g"), (unsigned int)getLocation("b")});
+}
+
+UnlitColor::~UnlitColor() {
+	if(!ucSharedMem--) {
+		destroy();
+    }
+}
+
+void UnlitColor::onUsed() {
+	if(currentUsedMaterial == this) return;
+
+	currentUsedMaterial = this;
 	updateUniforms();
 }
 

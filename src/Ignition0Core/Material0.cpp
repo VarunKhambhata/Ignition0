@@ -7,10 +7,9 @@
 
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <Ignition0Core/Logger0.h>
 
 #include <Ignition0Core/Material0.h>
-#include <Ignition0Core/InternalIgnition0.h>
+#include <Ignition0Core/Logger0.h>
 
 unsigned int Material0::compileShader(std::string source, GLuint type) {
 	unsigned int shader = glCreateShader(type);
@@ -33,6 +32,14 @@ unsigned int Material0::compileShader(std::string source, GLuint type) {
     return shader;
 }
 
+unsigned int Material0::getShaderProgram() {
+	return shaderProgram;
+}
+
+void Material0::setShaderProgram(unsigned int program) {
+	shaderProgram = program;
+}
+
 void Material0::build() {
 	unsigned int vertexShader   = compileShader(vertexShaderSource(), GL_VERTEX_SHADER);
 	unsigned int fragmentShader = compileShader(fragmentShaderSource(), GL_FRAGMENT_SHADER);
@@ -50,6 +57,10 @@ void Material0::build() {
 
     glUseProgram(shaderProgram);
     initUniforms();
+}
+
+void Material0::destroy() {
+	glDeleteProgram(shaderProgram);	
 }
 
 

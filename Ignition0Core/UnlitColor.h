@@ -21,6 +21,8 @@ public:
 	std::string vertexShaderSource();
 
 	UnlitColor(float r, float g, float b);
+	~UnlitColor();
+	void onUsed();
 	void initUniforms();
 	void onUniformsUpdate();
 };
