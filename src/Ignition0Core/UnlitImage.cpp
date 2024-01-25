@@ -9,6 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Ignition0Core/UnlitImage.h>
+
+#define STB_IMAGE_IMPLEMENTATION
 #include <Ignition0Core/stb_image.h>
 #include <Ignition0Core/Logger0.h>
 
@@ -21,12 +23,12 @@ std::string UnlitImage::vertexShaderSource() {
 		#version 330 core
 		layout (location = 0) in vec3 aPos;
 		layout (location = 1) in vec2 aTexCoords;
-		uniform mat4 projection;
+		uniform mat4 mvp;
 		out vec2 TexCoords;
 
 		void main()
 		{
-		    gl_Position = projection * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+		    gl_Position = mvp * vec4(aPos, 1.0);
 		    TexCoords = aTexCoords;
 		}
 	)";
@@ -49,12 +51,12 @@ std::string UnlitImage::fragmentShaderSource() {
 UnlitImage::UnlitImage(bool init) {
 	if(!uiSharedMem++) {
 		setShaderProgram(static_cast<unsigned int*>(uiSharedMem.getMemory())[0]);
-		sharedUniforms.projection(static_cast<unsigned int*>(uiSharedMem.getMemory())[1]);
+		sharedUniforms.mvp(static_cast<unsigned int*>(uiSharedMem.getMemory())[1]);
 		return;
 	}
 
 	init? build() : void();
-	uiSharedMem.setMemory(new unsigned int[2] {getShaderProgram(), (unsigned int)getLocation("projection")});
+	uiSharedMem.setMemory(new unsigned int[2] {getShaderProgram(), (unsigned int)getLocation("mvp")});
 }
 
 UnlitImage::~UnlitImage() {
@@ -96,5 +98,5 @@ void UnlitImage::setTexture(const char* imgFile) {
 }
 
 void UnlitImage::initUniforms() {
-	sharedUniforms.projection(getLocation("projection"));
+	sharedUniforms.mvp(getLocation("mvp"));
 }

@@ -9,7 +9,7 @@ class CubeAnimate: public Script0 {
 	void start() {}
 
 	void update() {
-		translate(0.01, -0.01, 0.01);
+		translate(0.004, -0.004, 0.004);
 
 		glm::vec3 pos = getPosition();
 
@@ -22,6 +22,6 @@ class CubeAnimate: public Script0 {
 		setPosition(pos.x, pos.y, pos.z);
 
 		int dir = pos.x < 0 ? -1 : 1;
-		rotate(0.2 * dir, 0.3 * dir, 0.1 * dir);
+		rotate(0.1 * dir, 0.15 * dir, 0.05 * dir);
 	}
 };

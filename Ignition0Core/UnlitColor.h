@@ -13,7 +13,7 @@ private:
 	GLint uniR, uniG, uniB;
 
 public:
-	struct _uniforms{
+	struct {
 		float r,g,b;
 	} uniforms;
 

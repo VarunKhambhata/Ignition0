@@ -19,6 +19,7 @@
 class Object0 {
 private:
 	glm::mat4 Projection, Transformation, Translation, Orientation;
+	
 	std::vector<m<Object0>> child;
 	std::vector<m<Script0>> script;
 
@@ -30,11 +31,17 @@ protected:
 	glm::vec3 Position, Rotation;
 	m<Material0> material = internal::Ignition0.missing;
 
-	uint8_t STATE;
+	uint8_t PENDING_STATE, STATE;
 	enum {
 		POSITION_CHANGED   = 1,
 		ROTATION_CHANGED   = 2,
 		PROJECTION_CHANGED = 4,
+	};
+
+	enum AttribLocation {
+		VERTEX = 0,
+		TEXTURE = 1,
+		NORMAL = 2,
 	};
 
 	void 		 normalizeRotation();
@@ -57,6 +64,7 @@ public:
 	virtual void onDraw() {};
 	virtual void setPosition(float x, float y, float z);
 	virtual void translate(float x, float y, float z);
+	virtual void setRotation(float x, float y, float z);
 	virtual void rotate(float x, float y, float z);
 
 

@@ -11,19 +11,45 @@
 class Material0 {
 private:
 	unsigned int shaderProgram;
+	static unsigned int commonShaderLib;
+	static std::string commonShaderLibSource;
 	static unsigned int compileShader(std::string source, GLuint type);
+	void initInternalUniforms();
+
 
 protected:
 	unsigned int getShaderProgram();
 	void setShaderProgram(unsigned int program);
 
-public:
-	union {
-		std::pair<GLint, glm::mat4*> projection_pair  = std::make_pair(-1, nullptr);
-		void projection(GLint loc)      { projection_pair.first =  loc; }
-		void projection(glm::mat4* val) { projection_pair.second = projection_pair.first != -1? val: nullptr; }
+	template <class T>
+	class UniformLink {
+	private:
+		T value;
+		GLint location;
+	public:
+		bool hasLocation  = false;
+		bool valueUpdated = false;
 
+		void operator()(GLint loc);
+		void operator=(T val);
+		operator GLint() const;
+		T operator~();
+	};
+
+public:	
+	struct {
+		UniformLink<glm::mat4*> mvp;
+		UniformLink<glm::mat4*> model;
+		UniformLink<glm::vec3>  camPosition;
 	} sharedUniforms;
+
+	struct LightProperties {
+	public:
+		glm::vec4 position; 
+		glm::vec4 color;
+		glm::vec4 properties;
+		enum { MAX_LIGHTS = 5 };
+	};
 
 	virtual std::string vertexShaderSource() = 0;
 	virtual std::string fragmentShaderSource() = 0;

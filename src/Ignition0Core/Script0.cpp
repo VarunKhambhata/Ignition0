@@ -3,7 +3,6 @@
  * Created: 02.10.2023
 **/
 
-
 #include <Ignition0Core/Object0.h>
 #include <Ignition0Core/Script0.h>
 
@@ -25,7 +24,10 @@ void Script0::translate(float x, float y, float z) {
 	object0->translate(x,y,z);
 }
 
+void Script0::setRotation(float x, float y, float z) {
+	object0->setRotation(x,y,z);
+}
+
 void Script0::rotate(float x, float y, float z) {
 	object0->rotate(x,y,z);
 }
-

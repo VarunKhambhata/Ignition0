@@ -22,6 +22,7 @@ protected:
 
 	void setPosition(float x, float y, float z);
 	void translate(float x, float y, float z);
+	void setRotation(float x, float y, float z);
 	void rotate(float x, float y, float z);
 
 	friend class Object0;

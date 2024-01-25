@@ -18,10 +18,10 @@ std::string UnlitColor::vertexShaderSource() {
 	return R"(
 		#version 330 core
 	    layout (location = 0) in vec3 aPos;
-	    uniform mat4 projection;
+	    uniform mat4 mvp;
 	    void main()
 	    {
-	       gl_Position = projection * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+	       gl_Position = mvp * vec4(aPos, 1.0);
 	    }
 	)";
 }
@@ -45,7 +45,7 @@ UnlitColor::UnlitColor(float r, float g, float b) {
 
 	if(!ucSharedMem++) {
 		setShaderProgram(static_cast<unsigned int*>(ucSharedMem.getMemory())[0]);
-		sharedUniforms.projection(static_cast<unsigned int*>(ucSharedMem.getMemory())[1]);
+		sharedUniforms.mvp(static_cast<unsigned int*>(ucSharedMem.getMemory())[1]);
 		uniR = static_cast<unsigned int*>(ucSharedMem.getMemory())[2];
 		uniG = static_cast<unsigned int*>(ucSharedMem.getMemory())[3];
 		uniB = static_cast<unsigned int*>(ucSharedMem.getMemory())[4];
@@ -53,7 +53,7 @@ UnlitColor::UnlitColor(float r, float g, float b) {
 	}
 
 	build();
-	ucSharedMem.setMemory(new unsigned int[5] {getShaderProgram(), (unsigned int)getLocation("projection"), 
+	ucSharedMem.setMemory(new unsigned int[5] {getShaderProgram(), (unsigned int)getLocation("mvp"), 
 							(unsigned int)getLocation("r"), (unsigned int)getLocation("g"), (unsigned int)getLocation("b")});
 }
 
@@ -71,7 +71,7 @@ void UnlitColor::onUsed() {
 }
 
 void UnlitColor::initUniforms() {
-	sharedUniforms.projection(getLocation("projection"));
+	sharedUniforms.mvp(getLocation("mvp"));
 	uniR = getLocation("r");
 	uniG = getLocation("g");
 	uniB = getLocation("b");

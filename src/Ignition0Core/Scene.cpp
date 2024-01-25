@@ -4,10 +4,22 @@
 **/
 
 #include <GL/glew.h>
+
 #include <Ignition0Core/Scene.h>
 #include <Ignition0Core/Logger0.h>
 
-Scene::Scene(): screen(Plane()), Projection(1) {}
+Scene::Scene(): screen(Plane()), Projection(1) {
+	glGenBuffers(1, &lightArrayBuffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, lightArrayBuffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) * 4 + sizeof(Material0::LightProperties) * Material0::LightProperties::MAX_LIGHTS, nullptr, GL_DYNAMIC_DRAW);	// Allocate buffer memory
+	int size = 0; glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &size);
+	glBindBufferBase(GL_UNIFORM_BUFFER, UboBinding::POINT_LIGHTS, lightArrayBuffer);	// Bind the buffer to the binding point
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+Scene::~Scene() {
+	glDeleteBuffers(1, &lightArrayBuffer);
+}
 
 void Scene::clear() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -37,17 +49,40 @@ void Scene::add(m<Camera> obj) {
 	Cameras.push_back(obj);
 }
 
+void Scene::add(m<PointLight> light) {
+	Lights.push_back(light);
+	int size = Lights.size();
+
+	glBindBuffer(GL_UNIFORM_BUFFER, lightArrayBuffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &size);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
 void Scene::update() {
 	clear();
 	for(m<Camera> cam: Cameras) {
+		Scene::currentCamera = cam;
+
 		cam->open();
 		cam->update();
 		cam->draw();
+
 		glm::mat4 proj = cam->getProjection() * cam->getTransformation();
+
+		int lightIndex = 0;
+		for(m<PointLight> light: Lights) {
+			light->update(proj);
+			if(lightIndex < Material0::LightProperties::MAX_LIGHTS)
+				light->updateUBO(lightArrayBuffer, lightIndex);
+			light->draw();
+			lightIndex ++;
+		}
+
 		for(m<Object0> obj: RenderObjects) {
 			obj->update(proj);
 			obj->draw();
 		}
+
 		updateFrame(*cam.get());
 	}
 }
@@ -68,4 +103,12 @@ void Scene::pickCenterPixel(glm::vec2 sz) {
     glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &attachmentStatus2);
 
     Logger0(depthValue <<"\t- " <<(int)color[0] <<" " <<(int)color[1] <<" " <<(int)color[2] <<" [" <<attachmentStatus1 << " " << attachmentStatus2<<"]");
+}
+
+
+
+m<Camera> Scene::currentCamera;
+
+m<Camera> Scene::getCurrentCamera() {
+	return Scene::currentCamera;
 }

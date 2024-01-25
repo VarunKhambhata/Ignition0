@@ -7,16 +7,16 @@
 
 #include <Ignition0Core/Object0.h>
 
-void 		 Object0::add(m<Object0> obj) 					{ child.push_back(obj); 								}
-void 		 Object0::setProjection(glm::mat4 projection) 	{ Projection = projection;	STATE|=PROJECTION_CHANGED;	}
-void 		 Object0::setMaterial(m<Material0> mat) 		{ material = mat?mat:internal::Ignition0.missing; 		}
-m<Material0> Object0::getMaterial()  						{ return material;   									}
-glm::mat4&   Object0::getProjection() 						{ return Projection; 									}
-glm::mat4&   Object0::getTransformation() 					{ return Transformation; 								}
-glm::vec3 	 Object0::getPosition() 						{ return Position; 		 								}
-glm::vec3 	 Object0::getRotation() 						{ return Rotation; 		 								}
+void 		 Object0::add(m<Object0> obj) 					{ child.push_back(obj);											}
+void 		 Object0::setProjection(glm::mat4 projection) 	{ Projection = projection; PENDING_STATE |= PROJECTION_CHANGED;	}
+void 		 Object0::setMaterial(m<Material0> mat) 		{ material = mat ? mat : internal::Ignition0.missing; 			}
+m<Material0> Object0::getMaterial()  						{ return material;   											}
+glm::mat4&   Object0::getProjection() 						{ return Projection; 											}
+glm::mat4&   Object0::getTransformation() 					{ return Transformation; 										}
+glm::vec3 	 Object0::getPosition() 						{ return Position; 		 										}
+glm::vec3 	 Object0::getRotation() 						{ return Rotation; 		 										}
 
-Object0::Object0(): Projection(1), Transformation(1), Translation(1), Orientation(1), Position(0), Rotation(0), STATE(0) {}
+Object0::Object0(): Projection(1), Transformation(1), Translation(1), Orientation(1), Position(0), Rotation(0), PENDING_STATE(0), STATE(0) {}
 
 void Object0::draw() {
 	onDraw();
@@ -26,9 +26,11 @@ void Object0::draw() {
 void Object0::update() {
 	for(m<Script0> s: script) s->update();
 
-	if(STATE) {
+	STATE = PENDING_STATE;
+
+	if(PENDING_STATE) {
 		applyStateUpdate();
-		STATE = 0;
+		PENDING_STATE = 0;
 	}
 
 	for(m<Object0> c: child) c->update(Projection);
@@ -46,13 +48,13 @@ void Object0::normalizeRotation() {
 }
 
 void Object0::applyStateUpdate() {
-	if(STATE & POSITION_CHANGED) {
+	if(PENDING_STATE & POSITION_CHANGED) {
 		glm::vec3 Pos = Position;
 		Pos.z = -Pos.z;
 		Translation = glm::translate(glm::mat4(1), Pos);
 	}
 
-	if(STATE & ROTATION_CHANGED) {
+	if(PENDING_STATE & ROTATION_CHANGED) {
 		float pitch = glm::radians(Rotation.x);
 		float yaw   = glm::radians(Rotation.y);
 		float roll  = glm::radians(Rotation.z);
@@ -61,7 +63,7 @@ void Object0::applyStateUpdate() {
 
 	Transformation = Translation * Orientation;
 
-	if(STATE & PROJECTION_CHANGED) {
+	if(PENDING_STATE & PROJECTION_CHANGED) {
 		Projection *= Transformation;
 	}
 }
@@ -79,7 +81,7 @@ void Object0::setPosition(float x, float y, float z) {
 	Position.y = y;
 	Position.z = z;
 
-	STATE |= POSITION_CHANGED;
+	PENDING_STATE |= POSITION_CHANGED;
 }
 
 void Object0::translate(float x, float y, float z) {
@@ -87,7 +89,17 @@ void Object0::translate(float x, float y, float z) {
 	Position.y += y;
 	Position.z += z;
 
-	STATE |= POSITION_CHANGED;
+	PENDING_STATE |= POSITION_CHANGED;
+}
+
+
+void Object0::setRotation(float x, float y, float z) {
+	Rotation.x = x;
+	Rotation.y = y;
+	Rotation.z = z;
+	normalizeRotation();
+
+	PENDING_STATE |= ROTATION_CHANGED;
 }
 
 void Object0::rotate(float x, float y, float z) {
@@ -96,5 +108,5 @@ void Object0::rotate(float x, float y, float z) {
 	Rotation.z += z;
 	normalizeRotation();
 
-	STATE |= ROTATION_CHANGED;
+	PENDING_STATE |= ROTATION_CHANGED;
 }

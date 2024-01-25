@@ -12,7 +12,7 @@ class CamControler: public Script0 {
 
 	void start() {
 		cam = static_cast<Camera*>(boundObject());
-		cam->projection(42, 0.1f, 400.0f);
+		cam->projection(52, 0.1f, 400.0f);
 		cam->setBackground(0.1f, 0.1f, 0.2f);
 	}
 

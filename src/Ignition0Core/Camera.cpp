@@ -8,7 +8,6 @@
 
 #include <Ignition0Core/Camera.h>
 
-
 GLuint 	   Camera::getRenderedTexture()	{ return colorBuffer; }
 GLuint 	   Camera::getRenderedDepth()   { return depthBuffer; }
 glm::vec2  Camera::getViewPosition()    { return vPosition;   }
@@ -63,11 +62,6 @@ void Camera::open() {
 	glDepthFunc(GL_LESS);
 	glClearColor(background.r, background.g, background.b, background.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if(STATE) {
-		applyStateUpdate();
-		STATE = 0;
-	}
 }
 
 void Camera::reload() {
@@ -101,7 +95,7 @@ void Camera::lookAt(float x, float y, float z) {
 	if(Rotation.x < -89) Rotation.x = -89;
 	normalizeRotation();
 
-	STATE |= ROTATION_CHANGED;
+	PENDING_STATE |= ROTATION_CHANGED;
 }
 
 void Camera::projection(float FOV, float near, float far) {
@@ -137,7 +131,7 @@ void Camera::rotate(float x, float y, float z) {
     Right   = glm::normalize(glm::cross(glm::vec3(0,1,0),Front));
     Up      = glm::rotate(glm::normalize(glm::cross(Front, Right)), glm::radians(Rotation.z), Front);
 
-	STATE |= ROTATION_CHANGED;
+	PENDING_STATE |= ROTATION_CHANGED;
 }
 
 void Camera::translate(float x, float y, float z) {
@@ -145,7 +139,7 @@ void Camera::translate(float x, float y, float z) {
 	Position += y * Up;
 	Position += z * Front;
 
-	STATE |= POSITION_CHANGED;
+	PENDING_STATE |= POSITION_CHANGED;
 }
 
 void Camera::applyStateUpdate() {

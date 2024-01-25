@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 
 #include <Ignition0Core/Cube.h>
+#include <Ignition0Core/Scene.h>
 #include <Ignition0Supplement/VoidMemory0.h>
 
 static VoidMemory0 cubeSharedMem;
@@ -18,48 +19,55 @@ Cube::Cube() {
     }
 
 	float cubeVertices[] = {
-        // positions        // texCoords
-        -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-        -1.0f,  1.0f, -1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+        // positions				// texCoords		// normals
 
-        -1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
-         1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-         1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
-        -1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
+        // back
+        -1.0f, -1.0f, -1.0f,        0.0f, 0.0f,         0.0f, 0.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,        1.0f, 0.0f,         0.0f, 0.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,        1.0f, 1.0f,         0.0f, 0.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,        1.0f, 1.0f,         0.0f, 0.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,        0.0f, 1.0f,         0.0f, 0.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,        0.0f, 0.0f,         0.0f, 0.0f, -1.0f,
+    
+        // front
+        -1.0f, -1.0f,  1.0f,        1.0f, 0.0f,         0.0f, 0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f,        0.0f, 0.0f,         0.0f, 0.0f, 1.0f,
+         1.0f,  1.0f,  1.0f,        0.0f, 1.0f,         0.0f, 0.0f, 1.0f,
+         1.0f,  1.0f,  1.0f,        0.0f, 1.0f,         0.0f, 0.0f, 1.0f,
+        -1.0f,  1.0f,  1.0f,        1.0f, 1.0f,         0.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f,  1.0f,        1.0f, 0.0f,         0.0f, 0.0f, 1.0f,
 
-        -1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 0.0f,
-        -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-        -1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
+        // left
+        -1.0f,  1.0f,  1.0f,        0.0f, 1.0f,         -1.0f, 0.0f, 0.0f,
+        -1.0f,  1.0f, -1.0f,        1.0f, 1.0f,         -1.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,        1.0f, 0.0f,         -1.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,        1.0f, 0.0f,         -1.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f,  1.0f,        0.0f, 0.0f,         -1.0f, 0.0f, 0.0f,
+        -1.0f,  1.0f,  1.0f,        0.0f, 1.0f,         -1.0f, 0.0f, 0.0f,
 
-         1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f, -1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
+        // right
+         1.0f,  1.0f,  1.0f,        1.0f, 1.0f,         1.0f, 0.0f, 0.0f,
+         1.0f,  1.0f, -1.0f,        0.0f, 1.0f,         1.0f, 0.0f, 0.0f,
+         1.0f, -1.0f, -1.0f,        0.0f, 0.0f,         1.0f, 0.0f, 0.0f,
+         1.0f, -1.0f, -1.0f,        0.0f, 0.0f,         1.0f, 0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f,        1.0f, 0.0f,         1.0f, 0.0f, 0.0f,
+         1.0f,  1.0f,  1.0f,        1.0f, 1.0f,         1.0f, 0.0f, 0.0f,
 
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
-         1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
-        -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
+        // bottom
+        -1.0f, -1.0f, -1.0f,        0.0f, 1.0f,         0.0f, -1.0f, 0.0f,
+         1.0f, -1.0f, -1.0f,        1.0f, 1.0f,         0.0f, -1.0f, 0.0f,
+         1.0f, -1.0f,  1.0f,        1.0f, 0.0f,         0.0f, -1.0f, 0.0f,
+         1.0f, -1.0f,  1.0f,        1.0f, 0.0f,         0.0f, -1.0f, 0.0f,
+        -1.0f, -1.0f,  1.0f,        0.0f, 0.0f,         0.0f, -1.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,        0.0f, 1.0f,         0.0f, -1.0f, 0.0f,
 
-        -1.0f,  1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f,  1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
-        -1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f,  1.0f, -1.0f,  0.0f, 0.0f
+        // top
+        -1.0f,  1.0f, -1.0f,        0.0f, 0.0f,         0.0f, 1.0f, 0.0f,
+         1.0f,  1.0f, -1.0f,        1.0f, 0.0f,         0.0f, 1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f,        1.0f, 1.0f,         0.0f, 1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f,        1.0f, 1.0f,         0.0f, 1.0f, 0.0f,
+        -1.0f,  1.0f,  1.0f,        0.0f, 1.0f,         0.0f, 1.0f, 0.0f,
+        -1.0f,  1.0f, -1.0f,        0.0f, 0.0f,         0.0f, 1.0f, 0.0f,
     };
 
     glGenVertexArrays(1, &VAO);
@@ -71,11 +79,14 @@ Cube::Cube() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
     // position attribute
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);    
+    glEnableVertexAttribArray(AttribLocation::VERTEX);
+    glVertexAttribPointer(AttribLocation::VERTEX, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);    
     // texture coord attribute
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(AttribLocation::TEXTURE);
+    glVertexAttribPointer(AttribLocation::TEXTURE, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    // normals attribute
+    glEnableVertexAttribArray(AttribLocation::NORMAL);
+    glVertexAttribPointer(AttribLocation::NORMAL, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 
     cubeSharedMem.setMemory(new unsigned int[2] {VAO, VBO});
 }
@@ -89,8 +100,19 @@ Cube::~Cube() {
 }
 
 void Cube::onDraw() {
-	material->sharedUniforms.projection(&getProjection());
 	material->use();
+    
+    material->sharedUniforms.mvp = &getProjection();
+
+    if(material->sharedUniforms.model.hasLocation)
+    	material->sharedUniforms.model = &getTransformation();
+
+    if(material->sharedUniforms.camPosition.hasLocation) {
+    	glm::vec3 camPos = Scene::getCurrentCamera()->getPosition();
+    	camPos.z *= -1;
+    	material->sharedUniforms.camPosition = camPos;
+    }
+
 	material->updateSharedUniforms();
 	glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);

@@ -8,13 +8,16 @@ build_threads = 4
 link = ['glfw', 'GL', 'GLEW']
 
 src = [	
-	'Ignition0.cpp',	
+	'Ignition0.cpp',
 	'Ignition0Core/Camera.cpp',	
 	'Ignition0Core/Cube.cpp',
 	'Ignition0Core/IgnitionInputs.cpp',
+	'Ignition0Core/LitColor.cpp',
+	'Ignition0Core/LitImage.cpp',
 	'Ignition0Core/Material0.cpp',
 	'Ignition0Core/Object0.cpp',
 	'Ignition0Core/Plane.cpp',
+	'Ignition0Core/PointLight.cpp',
 	'Ignition0Core/Scene.cpp',
 	'Ignition0Core/Script0.cpp',
 	'Ignition0Core/UnlitColor.cpp',
@@ -37,7 +40,7 @@ thread_lock = threading.Lock()
 
 
 def makeIgnition0GCC(cpp, o, link):
-	return 'g++ -c src/' + cpp + ' -o' + o + r' -I . -I ./Ignition0Core/glm -L.' + link
+	return 'g++ -Bstatic -c src/' + cpp + ' -o' + o + r' -I . -I ./Ignition0Core/glm -L.' + link
 
 def makeLinkGCC():
 	linkGCC = ''
