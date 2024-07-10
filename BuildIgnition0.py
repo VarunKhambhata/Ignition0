@@ -18,6 +18,7 @@ src = [
 	'Ignition0Core/Object0.cpp',
 	'Ignition0Core/Plane.cpp',
 	'Ignition0Core/PointLight.cpp',
+	'Ignition0Core/RenderView.cpp',
 	'Ignition0Core/Scene.cpp',
 	'Ignition0Core/Script0.cpp',
 	'Ignition0Core/UnlitColor.cpp',

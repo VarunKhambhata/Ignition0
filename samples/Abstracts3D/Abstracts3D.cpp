@@ -70,12 +70,12 @@ m<Scene> buildScene() {
 	c1->addScript(make<Rotation>());
 
 	
-	cam1->projection(30, 0.1f, 100.0f);
+	cam1->setProjection(30, 0.1f, 100.0f);
 	cam1->setPosition(0.0f, 0.0f, -3.0f);		
 	cam1->setBackground(0.2f, 0.3f, 0.3f, 1.0f);
 	cam1->setMaterial(negative);
 
-	cam2->projection(45, 0.1f, 100.0f);
+	cam2->setProjection(45, 0.1f, 100.0f);
 	cam2->setPosition(0.9f, 0.2f, -5.0f);
 	cam2->setBackground(0.35f, 0.35f, 0.35f, 1.0f);
 	cam2->addScript(make<Rotation>());

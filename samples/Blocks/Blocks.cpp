@@ -34,19 +34,19 @@ m<Scene> buildScene() {
 	brick->setTexture("data/brick.jpg");		brick->setMaterialProperties(0.3, 1.8, 0.2, 32);
 	controls->setTexture("data/controls.jpg");
 
+
 	m<Camera> cam = make<Camera>();	
+	cam->setPosition(0,0,-30);
+	cam->setProjection(52, 0.1f, 400.0f);
+	cam->setBackground(0.1f, 0.1f, 0.2f);
 	cam->addScript(make<CamControler>());
-	cam->setPosition(0,0,-10);
 	
-	m<Scene> scene = make<Scene>();
-	scene->add(cam);
 
 	m<Plane> UI = make<Plane>();
 	UI->setPosition(4,-2,8);
-	UI->rotate(30,45,5);
+	UI->rotate(-30,45,-5);
 	UI->setMaterial(controls);
 	cam->add(UI);
-
 
 
 	m<PointLight> p1 = make<PointLight>();
@@ -67,20 +67,27 @@ m<Scene> buildScene() {
 	p3->addScript(make<CubeAnimate>());
 
 
-	m<Cube> sharedLightBoxWarm = make<Cube>();
-	sharedLightBoxWarm->setMaterial(make<UnlitColor>(1,1,0));
+	m<Cube> lightBoxWarm1 = make<Cube>();
+	lightBoxWarm1->setMaterial(make<UnlitColor>(1,1,0));
+
+	m<Cube> lightBoxWarm2 = make<Cube>();
+	lightBoxWarm2->setMaterial(make<UnlitColor>(1,1,0));
 
 	m<Cube> lightBoxCool = make<Cube>();
 	lightBoxCool->setMaterial(make<UnlitColor>(0.0, 0.7, 1.0));
 
 
-	p1->add(sharedLightBoxWarm);
-	p3->add(sharedLightBoxWarm);
+
+	p1->add(lightBoxWarm1);
+	p3->add(lightBoxWarm2);
 	p2->add(lightBoxCool);
 	
+
+	m<Scene> scene = make<Scene>();
 	scene->add(p1);
 	scene->add(p2);
 	scene->add(p3);
+	scene->add(cam);
 
 
 	for(int i=0; i< 5; i++) {

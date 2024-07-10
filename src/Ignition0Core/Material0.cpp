@@ -23,8 +23,7 @@ unsigned int Material0::compileShader(std::string source, GLuint type) {
     int success;
 	char infoLog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if(!success)
-	{
+    if(!success) {
 	    glGetShaderInfoLog(shader, 512, NULL, infoLog);
 	    Logger0E("ERROR: " << ((type == 35632)?"Fragment":"Vertex") << " Shader Compilation Failed\n\t" << infoLog);
 	    return -1;
@@ -42,16 +41,14 @@ void Material0::setShaderProgram(unsigned int program) {
 }
 
 void Material0::build() {
-	if(!commonShaderLib) {
+	if(!commonShaderLib)
 		commonShaderLib = compileShader(commonShaderLibSource, GL_FRAGMENT_SHADER);
-	}
 
 	unsigned int vertexShader   = compileShader(vertexShaderSource(), GL_VERTEX_SHADER);
 	unsigned int fragmentShader = compileShader(fragmentShaderSource(), GL_FRAGMENT_SHADER);
 
-	if(vertexShader == -1 || fragmentShader == -1) {
+	if(vertexShader == -1 || fragmentShader == -1)
 		return;
-	}
 	
 
 	shaderProgram = glCreateProgram();
@@ -95,17 +92,14 @@ void Material0::updateUniforms() {
 }
 
 void Material0::updateSharedUniforms() {
-	if(sharedUniforms.mvp.valueUpdated) {
+	if(sharedUniforms.mvp.valueUpdated)
 		glUniformMatrix4fv(sharedUniforms.mvp, 1, GL_FALSE, glm::value_ptr(* ~sharedUniforms.mvp));
-	}
 
-	if(sharedUniforms.model.valueUpdated) {
+	if(sharedUniforms.model.valueUpdated)
 		glUniformMatrix4fv(sharedUniforms.model, 1, GL_FALSE, glm::value_ptr(* ~sharedUniforms.model));
-	}
 
-	if(sharedUniforms.camPosition.valueUpdated) {
+	if(sharedUniforms.camPosition.valueUpdated)
 		glUniform3fv(sharedUniforms.camPosition, 1, & (~sharedUniforms.camPosition)[0]);
-	}
 }
 
 

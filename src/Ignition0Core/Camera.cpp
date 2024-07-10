@@ -14,8 +14,9 @@ glm::vec2  Camera::getViewPosition()    { return vPosition;   }
 glm::vec2  Camera::getViewSize() 	    { return vSize;		  }
 glm::ivec2 Camera::getDisplayPosition() { return dPosition;	  }
 glm::ivec2 Camera::getDisplaySize()     { return dSize;		  }
+glm::mat4& Camera::getProjection()		{ return Projection;  }
 
-Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,1), Up(0,1,0), Right(1,0,0) {
+Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,1), Up(0,1,0), Right(1,0,0), Transformation(1) {
 	glm::vec2 display = internal::Ignition0.displaySize();
 	vPosition.x = x; 				vSize.x = width;
 	vPosition.y = y;				vSize.y = height;
@@ -45,6 +46,8 @@ Camera::Camera(float x, float y, float width, float height): background(0,0,0,1)
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);
+
+	visible = false;
 }
 
 Camera::~Camera() {	
@@ -64,6 +67,11 @@ void Camera::open() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void Camera::close() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(dPosition.x, dPosition.y, dSize.x, dSize.y);
+}
+
 void Camera::reload() {
 	glm::vec2 display = internal::Ignition0.displaySize();
 	dPosition.x = vPosition.x * display.x;
@@ -80,7 +88,7 @@ void Camera::reload() {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	projection(FOV, near, far);
+	setProjection(FOV, near, far);
 }
 
 void Camera::lookAt(float x, float y, float z) {
@@ -98,12 +106,12 @@ void Camera::lookAt(float x, float y, float z) {
 	PENDING_STATE |= ROTATION_CHANGED;
 }
 
-void Camera::projection(float FOV, float near, float far) {
+void Camera::setProjection(float FOV, float near, float far) {
 	this->FOV = FOV;
 	this->near = near;
 	this->far = far;
-	glm::mat4 proj = glm::perspective(glm::radians(FOV), (float)dSize.x/dSize.y, near, far);
-	setProjection(proj);
+	Projection = glm::perspective(glm::radians(FOV), (float)dSize.x/dSize.y, near, far);
+ 	Projection = glm::scale(Projection, glm::vec3(-1,1,1));
 }
 
 void Camera::setBackground(float r, float g, float b, float a) {
@@ -114,7 +122,7 @@ void Camera::setBackground(float r, float g, float b, float a) {
 }
 
 void Camera::rotate(float x, float y, float z) {
-	if(!(x || y || z)) return;	
+	if(!(x || y || z)) return;
 
 	Rotation.x += x;
 	Rotation.y += y;
@@ -129,7 +137,7 @@ void Camera::rotate(float x, float y, float z) {
     Front.x = sin(glm::radians(Rotation.y)) * cos(glm::radians(Rotation.x));
     Front   = glm::normalize(Front);
     Right   = glm::normalize(glm::cross(glm::vec3(0,1,0),Front));
-    Up      = glm::rotate(glm::normalize(glm::cross(Front, Right)), glm::radians(Rotation.z), Front);
+    Up      = glm::rotate(glm::normalize(glm::cross(Front, Right)), glm::radians(-Rotation.z), Front);
 
 	PENDING_STATE |= ROTATION_CHANGED;
 }
@@ -143,12 +151,11 @@ void Camera::translate(float x, float y, float z) {
 }
 
 void Camera::applyStateUpdate() {
-	// look at target
-	glm::vec3 pos    = Position;
-	glm::vec3 target = Position + Front;
-	glm::vec3 up 	 = Up;
-	
-	pos.z = -pos.z; target.z = -target.z; up.z = -up.z;
+	if(PENDING_STATE)
+		Transformation = glm::lookAt(Position, Position + Front, Up);
+	getGlobalTransformation() = Transformation * glm::inverse(getGlobalTransformation());
+}
 
-	getTransformation() = glm::lookAt(pos, target, up);
+const glm::mat4& Camera::prepChildUpdateTransformation() {
+	return internal::Ignition0.IDENTITY;
 }

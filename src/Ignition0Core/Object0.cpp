@@ -7,38 +7,49 @@
 
 #include <Ignition0Core/Object0.h>
 
-void 		 Object0::add(m<Object0> obj) 					{ child.push_back(obj);											}
-void 		 Object0::setProjection(glm::mat4 projection) 	{ Projection = projection; PENDING_STATE |= PROJECTION_CHANGED;	}
-void 		 Object0::setMaterial(m<Material0> mat) 		{ material = mat ? mat : internal::Ignition0.missing; 			}
-m<Material0> Object0::getMaterial()  						{ return material;   											}
-glm::mat4&   Object0::getProjection() 						{ return Projection; 											}
-glm::mat4&   Object0::getTransformation() 					{ return Transformation; 										}
-glm::vec3 	 Object0::getPosition() 						{ return Position; 		 										}
-glm::vec3 	 Object0::getRotation() 						{ return Rotation; 		 										}
 
-Object0::Object0(): Projection(1), Transformation(1), Translation(1), Orientation(1), Position(0), Rotation(0), PENDING_STATE(0), STATE(0) {}
+void 		 Object0::add(m<Object0> obj) 				{ child.push_back(obj);								  }
+void 		 Object0::setMaterial(m<Material0> mat) 	{ material = mat ? mat : internal::Ignition0.missing; }
+m<Material0> Object0::getMaterial()  					{ return material;   								  }
+glm::mat4&	 Object0::getGlobalTransformation() 		{ return TransfromationGlobal; 						  }
+glm::vec3 	 Object0::getPosition() 					{ return Position; 		 							  }
+glm::vec3 	 Object0::getRotation() 					{ return Rotation; 		 							  }
+void Object0::setVisible(bool visibility)				{ visible = visibility;								  }
+bool Object0::isVisible()								{ return visible; 									  }
 
-void Object0::draw() {
-	onDraw();
-	for(m<Object0> c: child) c->draw();
+Object0::Object0(): visible(true), TransfromationGlobal(1), Orientation(1), Position(0), Rotation(0), PENDING_STATE(POSITION_CHANGED|ROTATION_CHANGED), STATE(0) {}
+
+void Object0::onDraw(const RenderView& rView) {}
+
+void Object0::draw(const RenderView& rView) {
+	if(visible) {
+		onDraw(rView);
+		for(m<Object0> c: child) {
+			c->draw(rView);
+		}
+	}
 }
 
-void Object0::update() {
+uint8_t Object0::update(const glm::mat4& parentTransform, uint8_t parentState) {
 	for(m<Script0> s: script) s->update();
 
 	STATE = PENDING_STATE;
 
-	if(PENDING_STATE) {
+	if(PENDING_STATE | parentState) {
+		TransfromationGlobal = parentTransform;
 		applyStateUpdate();
 		PENDING_STATE = 0;
 	}
 
-	for(m<Object0> c: child) c->update(Projection);
+	uint8_t CHILD_STATE = 0;
+	for(m<Object0> c: child)
+		CHILD_STATE |= c->update(prepChildUpdateTransformation(), STATE);
+
+	return STATE | CHILD_STATE;
 }
 
-void Object0::update(glm::mat4 projection) {
-	setProjection(projection);
-	update();
+const glm::mat4& Object0::prepChildUpdateTransformation() {
+	return TransfromationGlobal;
 }
 
 void Object0::normalizeRotation() {
@@ -48,28 +59,16 @@ void Object0::normalizeRotation() {
 }
 
 void Object0::applyStateUpdate() {
-	if(PENDING_STATE & POSITION_CHANGED) {
-		glm::vec3 Pos = Position;
-		Pos.z = -Pos.z;
-		Translation = glm::translate(glm::mat4(1), Pos);
-	}
-
 	if(PENDING_STATE & ROTATION_CHANGED) {
 		float pitch = glm::radians(Rotation.x);
 		float yaw   = glm::radians(Rotation.y);
 		float roll  = glm::radians(Rotation.z);
-		Orientation = glm::eulerAngleYXZ(-yaw, -pitch, roll);
-	}	
-
-	Transformation = Translation * Orientation;
-
-	if(PENDING_STATE & PROJECTION_CHANGED) {
-		Projection *= Transformation;
+		Orientation = glm::eulerAngleYXZ(yaw, -pitch, -roll);
 	}
+	TransfromationGlobal *= glm::translate(Position) * Orientation;
 }
 
-void Object0::addScript(m<Script0> script)
-{
+void Object0::addScript(m<Script0> script) {
 	if(script->bindTo(this)) {
 		script->start();
 		this->script.push_back(script);
@@ -103,6 +102,8 @@ void Object0::setRotation(float x, float y, float z) {
 }
 
 void Object0::rotate(float x, float y, float z) {
+	if(!(x || y || z)) return;
+
 	Rotation.x += x;
 	Rotation.y += y;
 	Rotation.z += z;

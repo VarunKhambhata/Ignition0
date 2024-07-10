@@ -99,19 +99,17 @@ Cube::~Cube() {
     }
 }
 
-void Cube::onDraw() {
+void Cube::onDraw(const RenderView& rView) {
 	material->use();
-    
-    material->sharedUniforms.mvp = &getProjection();
+
+    glm::mat4 mvp = rView.Projection * getGlobalTransformation();
+    material->sharedUniforms.mvp = &mvp;
 
     if(material->sharedUniforms.model.hasLocation)
-    	material->sharedUniforms.model = &getTransformation();
+    	material->sharedUniforms.model = &getGlobalTransformation();
 
-    if(material->sharedUniforms.camPosition.hasLocation) {
-    	glm::vec3 camPos = Scene::getCurrentCamera()->getPosition();
-    	camPos.z *= -1;
-    	material->sharedUniforms.camPosition = camPos;
-    }
+    if(material->sharedUniforms.camPosition.hasLocation)
+    	material->sharedUniforms.camPosition = rView.Position;
 
 	material->updateSharedUniforms();
 	glBindVertexArray(VAO);

@@ -31,6 +31,8 @@ namespace internal {
 		glm::ivec2 displaySize();
 		m<UnlitColor> missing;
 		m<UnlitImage> colorImage;
+		static const glm::mat4 IDENTITY;
+		static const glm::vec3 ORIGIN;
 	} extern Ignition0;
 }
 

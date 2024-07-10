@@ -17,7 +17,6 @@ void PointLight::updateUBO(GLuint lpArrayBuffer, int index) {
 	if(STATE) {
 		Material0::LightProperties data;
 		data.position = glm::vec4(getPosition(), 0);
-		data.position.z = -data.position.z;
 		data.color = Color;
 		data.properties = glm::vec4(Radius, Intensity, FallOff, 0);
 

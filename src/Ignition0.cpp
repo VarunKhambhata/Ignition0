@@ -121,6 +121,9 @@ namespace ______________ {
 namespace internal {
 	i0 Ignition0;
 
+	const glm::mat4 i0::IDENTITY(1);
+	const glm::vec3 i0::ORIGIN(0);
+
 	bool i0::initialize() {
 		bool ret = _initialized;
 		_initialized = true;

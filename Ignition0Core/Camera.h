@@ -22,8 +22,11 @@ private:
 
 	glm::vec3 Front, Right, Up;
 
+	glm::mat4 Projection, Transformation;
+
 protected:
 	void applyStateUpdate() override final;	
+	const glm::mat4& prepChildUpdateTransformation() override final;
 
 public:
 	Camera(float x = 0, float y = 0, float width = 1, float height = 1);
@@ -35,12 +38,14 @@ public:
 	glm::vec2  getViewSize();
 	glm::ivec2 getDisplayPosition();
 	glm::ivec2 getDisplaySize();
+	glm::mat4& getProjection();
 
 	void open();
+	void close();
 	void reload();
 
 	void lookAt(float x, float y, float z);
-	void projection(float FOV, float near, float far);
+	void setProjection(float FOV, float near, float far);
 	void setBackground(float r, float g, float b, float a = 1);
 
 	void rotate(float x, float y, float z) override;

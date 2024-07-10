@@ -14,20 +14,21 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include <Ignition0Core/InternalIgnition0.h>
+#include <Ignition0Core/RenderView.h>
 #include <Ignition0Core/Script0.h>
 
 class Object0 {
 private:
-	glm::mat4 Projection, Transformation, Translation, Orientation;
-	
+	glm::mat4 TransfromationGlobal, Orientation;
+
 	std::vector<m<Object0>> child;
 	std::vector<m<Script0>> script;
 
-	void draw();
-	void update();
-	void update(glm::mat4 projection);
+	void draw(const RenderView& rView);
+	uint8_t update(const glm::mat4& parentTransform, uint8_t parentState = 0);
 
 protected:
+	bool visible;
 	glm::vec3 Position, Rotation;
 	m<Material0> material = internal::Ignition0.missing;
 
@@ -35,33 +36,34 @@ protected:
 	enum {
 		POSITION_CHANGED   = 1,
 		ROTATION_CHANGED   = 2,
-		PROJECTION_CHANGED = 4,
 	};
 
 	enum AttribLocation {
-		VERTEX = 0,
+		VERTEX  = 0,
 		TEXTURE = 1,
-		NORMAL = 2,
+		NORMAL  = 2,
 	};
 
 	void 		 normalizeRotation();
-	glm::mat4&   getProjection();
-	void 		 setProjection(glm::mat4 projection);
+	glm::mat4&   getGlobalTransformation();
+
 	virtual void applyStateUpdate();
+	virtual const glm::mat4& prepChildUpdateTransformation();
 
 public:
 	Object0();
 
-	void 		 add(m<Object0> obj);
-	void 		 addScript(m<Script0> script);
-	void         setMaterial(m<Material0> mat);
+	void add(m<Object0> obj);
+	void addScript(m<Script0> script);
+	void setMaterial(m<Material0> mat);
+	void setVisible(bool visibility);
 
+	bool  		  isVisible();
 	m<Material0>  getMaterial();
 	glm::vec3     getPosition();
 	glm::vec3     getRotation();
-	glm::mat4&    getTransformation();
 
-	virtual void onDraw() {};
+	virtual void onDraw(const RenderView& rView);
 	virtual void setPosition(float x, float y, float z);
 	virtual void translate(float x, float y, float z);
 	virtual void setRotation(float x, float y, float z);

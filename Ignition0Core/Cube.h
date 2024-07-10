@@ -15,7 +15,7 @@ private:
 public:
 	Cube();
 	~Cube();
-	void onDraw() override;
+	void onDraw(const RenderView& rView) override;
 };
 
 #endif

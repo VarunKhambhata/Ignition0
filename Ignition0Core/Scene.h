@@ -13,19 +13,15 @@
 
 class Scene {
 private:
-	std::vector<m<Object0>> RenderObjects;
+	std::vector<m<Object0>> Objects;
 	std::vector<m<Camera>> Cameras;
 	std::vector<m<PointLight>> Lights;
 	GLuint lightArrayBuffer;
 
 	Plane screen;
-	glm::mat4 Projection;
-	glm::ivec2 drawSize;
-
-	static m<Camera> currentCamera;
 
 	void clear();
-	void updateFrame(Camera &c);
+	void updateFrame(Camera &cam);
 
 public:
 	Scene();
@@ -36,9 +32,6 @@ public:
 	void update();
 	void resize();
 	void pickCenterPixel(glm::vec2 sz);
-
-
-	static m<Camera> getCurrentCamera();
 
 	enum UboBinding { POINT_LIGHTS = 1 };
 };

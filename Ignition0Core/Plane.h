@@ -15,7 +15,7 @@ private:
 public:
 	Plane();
 	~Plane();
-	void onDraw() override;
+	void onDraw(const RenderView& rView) override;
 };
 
 #endif
