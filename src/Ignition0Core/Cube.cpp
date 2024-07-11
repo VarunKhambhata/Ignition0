@@ -6,7 +6,6 @@
 #include <GL/glew.h>
 
 #include <Ignition0Core/Cube.h>
-#include <Ignition0Core/Scene.h>
 #include <Ignition0Supplement/VoidMemory0.h>
 
 static VoidMemory0 cubeSharedMem;

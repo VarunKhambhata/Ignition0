@@ -6,7 +6,6 @@
 #include <GL/glew.h>
 
 #include <Ignition0Core/Plane.h>
-#include <Ignition0Core/Scene.h>
 #include <Ignition0Supplement/VoidMemory0.h>
 
 static VoidMemory0 planeSharedMem;
@@ -19,7 +18,7 @@ Plane::Plane() {
     }
 
 	float quadVertices[] = {
-        // positions        // texCoords     // normals
+        // positions             // texCoords     // normals
         -1.0f,  1.0f, 0.0f,      0.0f, 1.0f,      0.0f, 0.0f, 1.0f,
         -1.0f, -1.0f, 0.0f,      0.0f, 0.0f,      0.0f, 0.0f, 1.0f,
          1.0f, -1.0f, 0.0f,      1.0f, 0.0f,      0.0f, 0.0f, 1.0f,

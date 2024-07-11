@@ -112,6 +112,10 @@ namespace ______________ {
 				renderLoop();
 			}
 
+			void i0::setDetail(Detail level) {
+				internal::Ignition0.setDetailLevel(level);
+			}
+
 		}
 	}
 }
@@ -127,6 +131,7 @@ namespace internal {
 	bool i0::initialize() {
 		bool ret = _initialized;
 		_initialized = true;
+		detailLevel = Detail::MEDIUM;
 		return ret;
 	}
 
@@ -137,6 +142,14 @@ namespace internal {
 
 	glm::ivec2 i0::displaySize() {
 		return _displaySize; 
+	}
+
+	void i0::setDetailLevel(Detail level) {
+		detailLevel = level;
+	}
+
+	Detail i0::preferedDetail() {
+		return detailLevel;
 	}
 }
 

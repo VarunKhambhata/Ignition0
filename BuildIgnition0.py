@@ -21,6 +21,7 @@ src = [
 	'Ignition0Core/RenderView.cpp',
 	'Ignition0Core/Scene.cpp',
 	'Ignition0Core/Script0.cpp',
+	'Ignition0Core/Sphere.cpp',
 	'Ignition0Core/UnlitColor.cpp',
 	'Ignition0Core/UnlitImage.cpp',
 	'Ignition0Supplement/VoidMemory0.cpp',

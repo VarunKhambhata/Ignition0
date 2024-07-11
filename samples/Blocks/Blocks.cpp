@@ -7,6 +7,7 @@
 #include <Ignition0Core/Scene.h>
 #include <Ignition0Core/Plane.h>
 #include <Ignition0Core/Cube.h>
+#include <Ignition0Core/Sphere.h>
 #include <Ignition0Core/Camera.h>
 #include <Ignition0Core/Object0.h>
 #include <Ignition0Core/UnlitImage.h>
@@ -20,6 +21,7 @@ m<Scene> buildScene();
 
 int main() {
 	Ignition0.start("Ignition0 ~ Blocks", 1280, 930);
+	Ignition0.setDetail(Detail::HIGH);
 	Ignition0.ignite(buildScene());
 	return 0;
 }
@@ -28,7 +30,8 @@ m<Scene> buildScene() {
 	m<LitImage> wood = make<LitImage>();
 	m<LitImage> brick = make<LitImage>();
 	m<UnlitImage> controls = make<UnlitImage>();
-	m<LitColor> metallic = make<LitColor>(0.2, 1, 0.2,  0.0, 0.2, 5, 256);
+	m<LitColor> metalGreen = make<LitColor>(0.2, 1, 0.2,  0.0, 0.2, 5, 256);
+	m<LitColor> metalWhite = make<LitColor>(1, 1, 1,  0.4, 0.8, 8, 256);
 
 	wood->setTexture("data/wood.jpg");			wood->setMaterialProperties(0.5, 0.8, 1.2, 128);
 	brick->setTexture("data/brick.jpg");		brick->setMaterialProperties(0.3, 1.8, 0.2, 32);
@@ -87,7 +90,7 @@ m<Scene> buildScene() {
 
 
 	m<Plane> plane = make<Plane>();
-	plane->setMaterial(metallic);
+	plane->setMaterial(metalWhite);
 	plane->setPosition(0, -20, 0);
 	plane->setRotation(90,0,0);
 	plane->setScale(20, 20, 1);
@@ -100,6 +103,31 @@ m<Scene> buildScene() {
 	scene->add(cam);
 	scene->add(plane);
 
+	m<Sphere> sph1 = make<Sphere>();
+	sph1->setMaterial(metalWhite);
+	sph1->setPosition(-24, 10, 24);
+	sph1->setScale(4,4,4);
+
+	m<Sphere> sph2 = make<Sphere>();
+	sph2->setMaterial(metalWhite);
+	sph2->setPosition(-24, 10, -20);
+	sph2->setScale(4,4,4);
+
+	m<Sphere> sph3 = make<Sphere>();
+	sph3->setMaterial(metalWhite);
+	sph3->setPosition(26, 10, 24);
+	sph3->setScale(4,4,4);
+
+	m<Sphere> sph4 = make<Sphere>();
+	sph4->setMaterial(metalWhite);
+	sph4->setPosition(26, 10, -20);
+	sph4->setScale(4,4,4);
+
+
+	scene->add(sph1);
+	scene->add(sph2);
+	scene->add(sph3);
+	scene->add(sph4);
 
 	for(int i=0; i< 5; i++) {
 		for(int j=0; j < 5; j++) {
@@ -109,7 +137,7 @@ m<Scene> buildScene() {
 
 				m<Material0> material;
 				if(k*i % 2)      material = wood;
-				else if(k*j % 3) material = metallic;
+				else if(k*j % 3) material = metalGreen;
 				else             material = brick;
 
 				cube->setMaterial(material);

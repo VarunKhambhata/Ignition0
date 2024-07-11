@@ -39,6 +39,7 @@ namespace ______________ {
 				public:
 					static void start(std::string title, int width = 0, int height = 0);
 					static void ignite(m<Scene> scene);
+					static void setDetail(Detail level);
 				};
 			}
 	}

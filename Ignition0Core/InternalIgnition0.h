@@ -19,16 +19,26 @@ std::shared_ptr<T> make(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+enum Detail {
+	LOW,
+	MEDIUM,
+	HIGH,
+	ULTRA,
+};
+
 namespace internal {
 	class __engine__ {
 	private:
 		glm::ivec2 _displaySize;
 		bool _initialized;
+		Detail detailLevel;
 
 	public:
 		bool initialize();
 		void displaySize(int w, int h);
 		glm::ivec2 displaySize();
+		void setDetailLevel(Detail level);
+		Detail preferedDetail();
 		m<UnlitColor> missing;
 		m<UnlitImage> colorImage;
 		static const glm::mat4 IDENTITY;
