@@ -14,10 +14,11 @@ m<Material0> Object0::getMaterial()  					{ return material;   								  }
 glm::mat4&	 Object0::getGlobalTransformation() 		{ return TransfromationGlobal; 						  }
 glm::vec3 	 Object0::getPosition() 					{ return Position; 		 							  }
 glm::vec3 	 Object0::getRotation() 					{ return Rotation; 		 							  }
+glm::vec3 	 Object0::getScale()	 					{ return Scale; 		 							  }
 void Object0::setVisible(bool visibility)				{ visible = visibility;								  }
 bool Object0::isVisible()								{ return visible; 									  }
 
-Object0::Object0(): visible(true), TransfromationGlobal(1), Orientation(1), Position(0), Rotation(0), PENDING_STATE(POSITION_CHANGED|ROTATION_CHANGED), STATE(0) {}
+Object0::Object0(): visible(true), TransfromationGlobal(1), Orientation(1), Position(0), Rotation(0), Scale(1), PENDING_STATE(POSITION_CHANGED|ROTATION_CHANGED), STATE(0) {}
 
 void Object0::onDraw(const RenderView& rView) {}
 
@@ -59,11 +60,11 @@ void Object0::normalizeRotation() {
 }
 
 void Object0::applyStateUpdate() {
-	if(PENDING_STATE & ROTATION_CHANGED) {
+	if(PENDING_STATE & ROTATION_CHANGED | SCALE_CHANGED) {
 		float pitch = glm::radians(Rotation.x);
 		float yaw   = glm::radians(Rotation.y);
 		float roll  = glm::radians(Rotation.z);
-		Orientation = glm::eulerAngleYXZ(yaw, -pitch, -roll);
+		Orientation = glm::eulerAngleYXZ(yaw, -pitch, -roll) * glm::scale(Scale);
 	}
 	TransfromationGlobal *= glm::translate(Position) * Orientation;
 }
@@ -110,4 +111,12 @@ void Object0::rotate(float x, float y, float z) {
 	normalizeRotation();
 
 	PENDING_STATE |= ROTATION_CHANGED;
+}
+
+void Object0::setScale(float x, float y, float z) {
+	Scale.x = x;
+	Scale.y = y;
+	Scale.z = z;
+
+	PENDING_STATE |= SCALE_CHANGED;
 }

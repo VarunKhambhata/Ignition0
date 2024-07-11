@@ -69,18 +69,28 @@ m<Scene> buildScene() {
 
 	m<Cube> lightBoxWarm1 = make<Cube>();
 	lightBoxWarm1->setMaterial(make<UnlitColor>(1,1,0));
+	lightBoxWarm1->setScale(0.5, 0.5, 0.5);
 
 	m<Cube> lightBoxWarm2 = make<Cube>();
 	lightBoxWarm2->setMaterial(make<UnlitColor>(1,1,0));
+	lightBoxWarm2->setScale(0.5, 0.5, 0.5);
 
 	m<Cube> lightBoxCool = make<Cube>();
 	lightBoxCool->setMaterial(make<UnlitColor>(0.0, 0.7, 1.0));
+	lightBoxCool->setScale(0.5, 0.5, 0.5);
 
 
 
 	p1->add(lightBoxWarm1);
 	p3->add(lightBoxWarm2);
 	p2->add(lightBoxCool);
+
+
+	m<Plane> plane = make<Plane>();
+	plane->setMaterial(metallic);
+	plane->setPosition(0, -20, 0);
+	plane->setRotation(90,0,0);
+	plane->setScale(20, 20, 1);
 	
 
 	m<Scene> scene = make<Scene>();
@@ -88,6 +98,7 @@ m<Scene> buildScene() {
 	scene->add(p2);
 	scene->add(p3);
 	scene->add(cam);
+	scene->add(plane);
 
 
 	for(int i=0; i< 5; i++) {
