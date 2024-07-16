@@ -15,6 +15,7 @@ src = [
 	'Ignition0Core/LitColor.cpp',
 	'Ignition0Core/LitImage.cpp',
 	'Ignition0Core/Material0.cpp',
+	'Ignition0Core/Model.cpp',
 	'Ignition0Core/Object0.cpp',
 	'Ignition0Core/Plane.cpp',
 	'Ignition0Core/PointLight.cpp',

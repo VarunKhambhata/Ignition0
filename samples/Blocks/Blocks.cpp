@@ -38,7 +38,7 @@ m<Scene> buildScene() {
 	controls->setTexture("data/controls.jpg");
 
 
-	m<Camera> cam = make<Camera>();	
+	m<Camera> cam = make<Camera>();
 	cam->setPosition(0,0,-30);
 	cam->setProjection(52, 0.1f, 400.0f);
 	cam->setBackground(0.1f, 0.1f, 0.2f);
