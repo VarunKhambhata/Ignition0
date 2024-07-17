@@ -10,6 +10,7 @@
 #include <Ignition0Core/Model.h>
 #include <Ignition0Core/LitColor.h>
 #include <Ignition0Core/Sphere.h>
+#include <Ignition0Core/Line.h>
 #include "../Blocks/CamController.h"
 
 m<Scene> buildScene();
@@ -37,7 +38,21 @@ m<Scene> buildScene() {
 	m<Sphere> light = make<Sphere>();
 	light->setMaterial(make<UnlitColor>(1.0, 1.0, 0.7));
 	light->setScale(2,2,2);
+
+	m<Line> l1 = make<Line>();
+	l1->setMaterial(light->getMaterial());
+	l1->setScale(10,0,5);
+	l1->translate(-5,0,0);
+
+	m<Line> l2 = make<Line>();
+	l2->setMaterial(light->getMaterial());
+	l2->setScale(10,0,5);
+	l2->translate(0,5,0);
+	l2->rotate(0,0,90);
+
 	p1->add(light);
+	p1->add(l1);
+	p1->add(l2);
 
 
 
