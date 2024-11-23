@@ -44,9 +44,10 @@ import threading
 thread_exception = threading.Event()
 thread_lock = threading.Lock()
 
+outDir = '.out/'
 
 def makeIgnition0GCC(cpp, o, link):
-	return 'g++ -Bstatic -c src/' + cpp + ' -o' + o + r' -I . -I ./Ignition0Core/glm -L.' + link
+	return 'g++ -Bstatic -c ' + cpp + ' -o ' + o + r' -I . -I ./Ignition0Core/glm -L.' + link
 
 def makeLinkGCC():
 	linkGCC = ''
@@ -58,13 +59,13 @@ def run(cmd):
 	if os.system(cmd) !=0:
 		raise Exception()
 
-def distributeJobs():
+def distributeJobs(checkUpdate):
 	size = len(src)
-	part = size / build_threads
-	rem  = size % build_threads
-
+	part = int(size / build_threads)
+	rem  = int(size % build_threads)
+	
 	start = 0
-	end  = 0
+	end   = 0
 	compile_thread = []
 	linkGCC = makeLinkGCC()
 
@@ -74,35 +75,64 @@ def distributeJobs():
 			end += 1
 			rem -= 1
 		end += part
-		t = threading.Thread(target=buildObjs, args=(start, end, linkGCC))
+		t = threading.Thread(target=buildObjs, args=(start, end, linkGCC, checkUpdate))
 		t.start()
 		compile_thread.append(t)
 
-	oLibList = ' '.join(map(str, range(0, end)))
+	oLibList = ' '.join(map(lambda i: outDir + str(i), range(0,end)))
 	return compile_thread, oLibList
 
-def buildObjs(start, end, linkGCC):	
+def buildObjs(start, end, linkGCC, checkUpdate):
 	try:
 		for i in range(start, end):
 			if thread_exception.is_set(): return
-			with thread_lock: print('-' + src[i])
-			run(makeIgnition0GCC(src[i], str(i), linkGCC))
+
+			srcPath = 'src/' + str(src[i])			
+			outPath = outDir + str(i)
+			
+			if checkUpdate and os.path.isfile(outPath):
+				srcTime = os.path.getmtime(srcPath)
+				outTime = os.path.getmtime(outPath)
+				if srcTime < outTime:
+					continue
+			with thread_lock: print('- ' + src[i])
+			run(makeIgnition0GCC(srcPath, outPath, linkGCC))
 	except:
 		thread_exception.set()
 
+def getTimeStamp(path):
+	timestamp = os.path.getmtime(path)
+	for dirpath, subdinames, filenames in os.walk(path):
+		timestamp = max(timestamp, os.path.getmtime(dirpath))
+	return timestamp
 
-def buildIgnition0():
-	print("\nBUILDING ...")
+def buildIgnition0(checkUpdate=True):
+	if not os.path.exists(outDir):
+		os.makedirs(outDir)
+		buildTime = 0
+	else:
+		buildTime = getTimeStamp(outDir)
+
+	if checkUpdate:
+		if buildTime < getTimeStamp(__file__):
+			checkUpdate = False
+		elif buildTime < max(getTimeStamp('Ignition0.h'), getTimeStamp('Ignition0Supplement'), getTimeStamp('Ignition0Core')):
+			checkUpdate = False
+		elif buildTime < getTimeStamp('src'):
+			checkUpdate = True
+		elif os.path.isfile('libIgnition0.a'):
+			print('ALREADY EXIST: libIgnition0.a')
+			return
+
+	print("BUILDING ...")
 	try:
-		threads, oLibList = distributeJobs()
+		threads, oLibList = distributeJobs(checkUpdate)
 		for t in threads: t.join()
 		if thread_exception.is_set(): raise Exception()
 		run('ar rcs libIgnition0.a ' + oLibList)
 		print('BUILT libIgnition0.a')
 	except:
 		print("BUILD FAILED")
-	finally:
-		run('rm -f ' + oLibList)	
 
 
 
@@ -115,11 +145,9 @@ else:
 	parser.add_argument('-a', metavar='', help='cpp file for Ignition0 application')
 	args = parser.parse_args()
 
-	if args.c:
-		buildIgnition0()
+	buildIgnition0(not args.c)
+
 	if args.a:
-		if not os.path.isfile('libIgnition0.a'):
-			buildIgnition0()
 		try:
 			print('\nBUILDING APPLICATION ...')
 			run('g++ ' + args.a + ' -o ' + args.a.split('.cpp')[0] + r' -I./ -I./Ignition0Core/glm -L. -lIgnition0' + makeLinkGCC() + ' -no-pie')
