@@ -36,7 +36,8 @@ protected:
 	enum {
 		POSITION_CHANGED = 1,
 		ROTATION_CHANGED = 2,
-		SCALE_CHANGED	 = 3,
+		SCALE_CHANGED	 = 4,
+		PROPERTY_CHANGED = 8,
 	};
 
 	enum AttribLocation {

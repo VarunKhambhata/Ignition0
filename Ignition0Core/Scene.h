@@ -9,19 +9,24 @@
 #include <Ignition0Core/Object0.h>
 #include <Ignition0Core/Camera.h>
 #include <Ignition0Core/Plane.h>
+#include <Ignition0Core/DirectionalLight.h>
 #include <Ignition0Core/PointLight.h>
 
 class Scene {
 private:
 	std::vector<m<Object0>> Objects;
 	std::vector<m<Camera>> Cameras;
-	std::vector<m<PointLight>> Lights;
-	GLuint lightArrayBuffer;
+
+	std::vector<m<DirectionalLight>> DirectionalLights;
+	std::vector<m<PointLight>> PointLights;
+
+	Light0::LightBuffer directLightBuffer, pointLightBuffer;
 
 	Plane screen;
 
 	void clear();
 	void updateFrame(Camera &cam);
+	void syncLights();
 
 public:
 	Scene();
@@ -29,11 +34,13 @@ public:
 	void add(m<Object0> obj);
 	void add(m<Camera> cam);
 	void add(m<PointLight> light);
+	void add(m<DirectionalLight> light);
+	
 	void update();
 	void resize();
 	void pickCenterPixel(glm::vec2 sz);
 
-	enum UboBinding { POINT_LIGHTS = 1 };
+	enum UboBinding { DIRECTIONAL_LIGHT = 0, POINT_LIGHTS = 1 };
 };
 
 #endif

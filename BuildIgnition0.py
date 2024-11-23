@@ -3,7 +3,7 @@
  # Created: 12.08.2023
 ###
 
-build_threads = 4
+build_threads = 6
 
 link = ['glfw', 'GL', 'GLEW']
 
@@ -11,7 +11,9 @@ src = [
 	'Ignition0.cpp',
 	'Ignition0Core/Camera.cpp',	
 	'Ignition0Core/Cube.cpp',
+	'Ignition0Core/DirectionalLight.cpp',
 	'Ignition0Core/IgnitionInputs.cpp',
+	'Ignition0Core/Light0.cpp',
 	'Ignition0Core/Line.cpp',
 	'Ignition0Core/LitColor.cpp',
 	'Ignition0Core/LitImage.cpp',

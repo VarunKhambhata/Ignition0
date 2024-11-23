@@ -8,20 +8,18 @@
 #include <Ignition0Core/PointLight.h>
 #include <Ignition0Core/Material0.h>
 
-void PointLight::setColor(float r, float g, float b) 						 { Color = glm::vec4(r,g,b, 0); }
-void PointLight::setProperties(float radius, float intensity, float fallOff) { Radius = radius; Intensity = intensity; FallOff = fallOff; }
+void PointLight::setProperties(float radius, float fallOff) { Radius = radius; FallOff = fallOff;  PENDING_STATE |= PROPERTY_CHANGED;}
 
-PointLight::PointLight(): Color(glm::vec4(1,1,1,0)), Radius(10), Intensity(1), FallOff(1) {}
+PointLight::PointLight(): Radius(10), FallOff(1) {}
 
-void PointLight::updateUBO(GLuint lpArrayBuffer, int index) {
+void PointLight::updateUBO(const int index) {
 	if(STATE) {
-		Material0::LightProperties data;
-		data.position = glm::vec4(getPosition(), 0);
-		data.color = Color;
-		data.properties = glm::vec4(Radius, Intensity, FallOff, 0);
+		Material0::PointLightProperties data = {
+			glm::vec4(getPosition(), 0),
+			glm::vec4(Color, 0),
+			glm::vec4(Radius, Intensity, FallOff, 0)
+		};
 
-		glBindBuffer(GL_UNIFORM_BUFFER, lpArrayBuffer);
-		glBufferSubData(GL_UNIFORM_BUFFER, (sizeof(int) * 4) +  (sizeof(Material0::LightProperties) * index), sizeof(Material0::LightProperties), &data);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glBufferSubData(GL_UNIFORM_BUFFER, (sizeof(int) * 4) + (sizeof(Material0::PointLightProperties) * index), sizeof(Material0::PointLightProperties), &data);
 	}
 }

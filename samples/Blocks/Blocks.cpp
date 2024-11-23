@@ -55,18 +55,21 @@ m<Scene> buildScene() {
 	m<PointLight> p1 = make<PointLight>();
 	p1->setPosition(-8, 15, -10);
 	p1->setColor(0.4, 0.3, 0.2);
-	p1->setProperties(25, 5, 5);
+	p1->setIntensity(5);
+	p1->setProperties(25, 5);
 	p1->addScript(make<CubeAnimate>());
 
 	m<PointLight> p2 = make<PointLight>();
 	p2->setPosition(10, -8, 13);
 	p2->setColor(0.1, 0.2, 0.4);
-	p2->setProperties(12, 6, 0.5);
+	p2->setIntensity(6);
+	p2->setProperties(12, 0.5);
 	p2->addScript(make<CubeAnimate>());
 
 	m<PointLight> p3 = make<PointLight>();
 	p3->setColor(0.5, 0.3, 0.0);
-	p3->setProperties(30, 5, 2);
+	p3->setIntensity(5);
+	p3->setProperties(30, 2);
 	p3->addScript(make<CubeAnimate>());
 
 

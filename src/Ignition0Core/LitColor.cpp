@@ -48,6 +48,11 @@ std::string LitColor::fragmentShaderSource() {
 		uniform float shininess;
 
 
+		int getMaxDirectionalLights();
+		vec3 getDirectionalLight(int index);
+		vec3 getDirectionalLightColor(int index);
+		float getDirectionalLightIntensity(int index);
+
 		int getMaxLights();
 		vec3 getLightPosition(int index);
 		vec3 getLightColor(int index);
@@ -62,6 +67,22 @@ std::string LitColor::fragmentShaderSource() {
 			return max_intensity * pow(1 - s2,2) / (1 + falloff * s);
 		}
 
+		vec3 CalcDirectionalLight(vec3 lColor, vec3 lDirection, float lIntensity, vec3 viewDir, vec3 norm) {
+			// ambient
+			vec3 ambient = lColor * ambientStrength;
+			
+			// diffuse
+			float diffuseStrength = max(dot(norm, lDirection), 0.0);
+			vec3 diffuse = lColor * (diffuseStrength * diffStrength);
+
+			// specular - Blinn-Phong
+			vec3 halfwayDir       = normalize(lDirection + viewDir);
+    		float spec            = pow(max(dot(norm, halfwayDir), 0.0), shininess);
+			vec3 specular   	  = lColor * (spec * specularStrength);
+
+			// attenuation
+			return (ambient + diffuse + specular) * lIntensity;
+		}
 
 		vec3 PointLightEffect(vec3 lPosition, vec3 lColor, float radius, float intensity, float fallOff, vec3 viewDir, vec3 norm) {
 			// ambient
@@ -87,12 +108,15 @@ std::string LitColor::fragmentShaderSource() {
     		return (ambient + diffuse + specular);
 		}
 
-
 	    void main()
 	    {
 	    	vec3 result;
 	    	vec3 norm    = normalize(Normal);
 	    	vec3 viewDir = normalize(viewPos - FragPos);
+
+	    	for(int i = 0; i < getMaxDirectionalLights(); i++) {
+	    		result += CalcDirectionalLight(getDirectionalLightColor(i), getDirectionalLight(i), getDirectionalLightIntensity(i), viewDir, norm);
+	    	}
 
 	    	for(int i = 0; i < getMaxLights(); i++) {
 	    		vec3 lightPos        = getLightPosition(i);

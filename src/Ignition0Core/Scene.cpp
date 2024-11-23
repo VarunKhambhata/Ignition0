@@ -6,19 +6,34 @@
 #include <GL/glew.h>
 
 #include <Ignition0Core/Scene.h>
-#include <Ignition0Core/Logger0.h>
 
 Scene::Scene(): screen(Plane()) {
-	glGenBuffers(1, &lightArrayBuffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, lightArrayBuffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) * 4 + sizeof(Material0::LightProperties) * Material0::LightProperties::MAX_LIGHTS, nullptr, GL_DYNAMIC_DRAW);	// Allocate buffer memory
-	int size = 0; glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &size);
-	glBindBufferBase(GL_UNIFORM_BUFFER, UboBinding::POINT_LIGHTS, lightArrayBuffer);	// Bind the buffer to the binding point
+	switch(internal::Ignition0.preferedDetail()) {
+		case Detail::LOW:    directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/64; break;
+		case Detail::MEDIUM: directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/16; break;
+		case Detail::HIGH:   directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/02; break;
+		case Detail::ULTRA:  directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/01;	break;
+	}
+
+	int initSize = 0;
+
+	glGenBuffers(1, &directLightBuffer.bufferObject);
+	glBindBuffer(GL_UNIFORM_BUFFER, directLightBuffer.bufferObject);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) * 4 + sizeof(Material0::DirectionalLightProperties) * directLightBuffer.size, nullptr, GL_DYNAMIC_DRAW);	// Allocate buffer memory
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &initSize);
+	glBindBufferBase(GL_UNIFORM_BUFFER, UboBinding::DIRECTIONAL_LIGHT, directLightBuffer.bufferObject);	// Bind the buffer to the binding point
+
+	glGenBuffers(1, &pointLightBuffer.bufferObject);
+	glBindBuffer(GL_UNIFORM_BUFFER, pointLightBuffer.bufferObject);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) * 4 + sizeof(Material0::PointLightProperties) * pointLightBuffer.size, nullptr, GL_DYNAMIC_DRAW);	// Allocate buffer memory
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &initSize);
+	glBindBufferBase(GL_UNIFORM_BUFFER, UboBinding::POINT_LIGHTS, pointLightBuffer.bufferObject);	// Bind the buffer to the binding point
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 Scene::~Scene() {
-	glDeleteBuffers(1, &lightArrayBuffer);
+	glDeleteBuffers(1, &directLightBuffer.bufferObject);
+	glDeleteBuffers(1, &pointLightBuffer.bufferObject);
 }
 
 void Scene::clear() {
@@ -38,6 +53,34 @@ void Scene::updateFrame(Camera &cam) {
 	screen.draw(rvScreen);
 }
 
+void Scene::syncLights() {
+	pointLightBuffer.resetHead();
+	directLightBuffer.resetHead();
+
+	glBindBuffer(GL_UNIFORM_BUFFER, directLightBuffer.bufferObject);
+	if(directLightBuffer.needsUpdate) {
+		directLightBuffer.needsUpdate = false;
+		int size = DirectionalLights.size() < directLightBuffer.size ? DirectionalLights.size() : directLightBuffer.size;
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &size);
+	}
+
+	for(m<Light0> light: DirectionalLights) {
+		light->updateLight(directLightBuffer);
+	}
+
+	glBindBuffer(GL_UNIFORM_BUFFER, pointLightBuffer.bufferObject);
+	if(pointLightBuffer.needsUpdate) {
+		pointLightBuffer.needsUpdate = false;
+		int size = PointLights.size() < pointLightBuffer.size ? PointLights.size() : pointLightBuffer.size;;
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &size);
+	}
+
+	for(m<Light0> light: PointLights)
+		light->updateLight(pointLightBuffer);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
 void Scene::add(m<Object0> obj) {
 	Objects.push_back(obj);
 }
@@ -49,12 +92,14 @@ void Scene::add(m<Camera> obj) {
 
 void Scene::add(m<PointLight> light) {
 	Objects.push_back(light);
-	Lights.push_back(light);
-	int size = Lights.size();
+	PointLights.push_back(light);
+	pointLightBuffer.needsUpdate = true;
+}
 
-	glBindBuffer(GL_UNIFORM_BUFFER, lightArrayBuffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &size);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+void Scene::add(m<DirectionalLight> light) {
+	Objects.push_back(light);
+	DirectionalLights.push_back(light);
+	directLightBuffer.needsUpdate = true;
 }
 
 void Scene::update() {
@@ -63,15 +108,7 @@ void Scene::update() {
 	for(m<Object0> obj: Objects)
 		STATE |= obj->update(internal::Ignition0.IDENTITY);
 
-	if(STATE) {
-		int lightIndex = 0;
-		for(m<PointLight> light: Lights) {
-			if(lightIndex < Material0::LightProperties::MAX_LIGHTS)
-				light->updateUBO(lightArrayBuffer, lightIndex);
-			lightIndex ++;
-		}
-	}
-
+	syncLights();
 
 	clear();
 	for(m<Camera> cam: Cameras) {
@@ -110,5 +147,5 @@ void Scene::pickCenterPixel(glm::vec2 sz) {
     glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &attachmentStatus1);
     glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &attachmentStatus2);
 
-    Logger0(depthValue <<"\t- " <<(int)color[0] <<" " <<(int)color[1] <<" " <<(int)color[2] <<" [" <<attachmentStatus1 << " " << attachmentStatus2<<"]");
+    // Logger0(depthValue <<"\t- " <<(int)color[0] <<" " <<(int)color[1] <<" " <<(int)color[2] <<" [" <<attachmentStatus1 << " " << attachmentStatus2<<"]");
 }

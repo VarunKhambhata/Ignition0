@@ -60,7 +60,7 @@ void Object0::normalizeRotation() {
 }
 
 void Object0::applyStateUpdate() {
-	if(PENDING_STATE & ROTATION_CHANGED | SCALE_CHANGED) {
+	if(PENDING_STATE & (ROTATION_CHANGED | SCALE_CHANGED)) {
 		float pitch = glm::radians(Rotation.x);
 		float yaw   = glm::radians(Rotation.y);
 		float roll  = glm::radians(Rotation.z);

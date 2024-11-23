@@ -65,12 +65,19 @@ void Material0::build() {
 }
 
 void Material0::initInternalUniforms() {
-	GLuint lightBlockIndex = glGetUniformBlockIndex(shaderProgram, "LightArray.lights");
-    if(lightBlockIndex >= 0) {
+	GLuint drlBlockIndex = glGetUniformBlockIndex(shaderProgram, "DirectionalLights");
+    if(drlBlockIndex >= 0) {
     	// Associate the buffer with the buffer's binding point
     	// Actual buffer is bound to this binding point
-    	glUniformBlockBinding(shaderProgram, lightBlockIndex, Scene::UboBinding::POINT_LIGHTS);
+    	glUniformBlockBinding(shaderProgram, drlBlockIndex, Scene::UboBinding::DIRECTIONAL_LIGHT);
     }
+
+	GLuint ptlBlockIndex = glGetUniformBlockIndex(shaderProgram, "PointLights");
+    if(ptlBlockIndex >= 0) {
+    	// Associate the buffer with the buffer's binding point
+    	// Actual buffer is bound to this binding point
+    	glUniformBlockBinding(shaderProgram, ptlBlockIndex, Scene::UboBinding::POINT_LIGHTS);
+    }   
 }
 
 void Material0::destroy() {
@@ -140,48 +147,50 @@ T Material0::UniformLink<T>::operator~(){
 // *************************************************************************
 
 
+#define STR_EXPAND(x) #x
+#define STR(x) STR_EXPAND(x)
 
 // shared shader library implementation ************************************
 unsigned int Material0::commonShaderLib = 0;
 std::string Material0::commonShaderLibSource = R"(
 	#version 330 core
+	#define MAX_LIGHTS )" STR(MAX_LIGHT) R"(
 
-	struct LightProperties {
+	struct DirectionalLightProp {
+		vec3 direction;
+		vec4 properties;
+	};
+
+	struct PointLightProp {
 		vec3 position;
 		vec3 color;
 		vec3 properties;
 	};
 
-	#define MAX_LIGHTS 5
-	layout(packed) uniform LightArray {
-		int totalLights;
-		LightProperties lights[MAX_LIGHTS];
+	layout(packed) uniform DirectionalLights {
+		int totalDrLights;
+		DirectionalLightProp drLights[MAX_LIGHTS];
+	};
+	
+	layout(packed) uniform PointLights {
+		int totalPtLights;
+		PointLightProp ptLights[MAX_LIGHTS];
 	};
 
+	int getMaxDirectionalLights() { return totalDrLights; }
+	vec3 getDirectionalLight(int index) { return drLights[index].direction; }
+	vec3 getDirectionalLightColor(int index) { return drLights[index].properties.rgb; }
+	float getDirectionalLightIntensity(int index) {	return drLights[index].properties.a; }
 
-	int getMaxLights() {
-		return totalLights;
-	}
-
-	vec3 getLightPosition(int index) {
-		return lights[index].position;
-	}
-
-	vec3 getLightColor(int index) {
-		return lights[index].color;
-	}
-
-	float getLightRadius(int index) {
-		return lights[index].properties.x;
-	}
-
-	float getLightIntensity(int index) {
-		return lights[index].properties.y;
-	}
-
-	float getLightFallOff(int index) {
-		return lights[index].properties.z;
-	}
-
+	int getMaxLights() { return totalPtLights; }
+	vec3 getLightPosition(int index) { return ptLights[index].position; }
+	vec3 getLightColor(int index) {	return ptLights[index].color;	}
+	float getLightRadius(int index) { return ptLights[index].properties.x; }
+	float getLightIntensity(int index) { return ptLights[index].properties.y; }
+	float getLightFallOff(int index) { return ptLights[index].properties.z; }
 )";
 // *************************************************************************
+
+
+#undef STR_EXPAND
+#undef STR

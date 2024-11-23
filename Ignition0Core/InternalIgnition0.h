@@ -26,6 +26,8 @@ enum Detail {
 	ULTRA,
 };
 
+#define MAX_LIGHT 1024
+
 namespace internal {
 	class __engine__ {
 	private:

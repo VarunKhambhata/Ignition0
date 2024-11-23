@@ -36,19 +36,22 @@ protected:
 		T operator~();
 	};
 
-public:	
+public:
 	struct {
 		UniformLink<glm::mat4*> mvp;
 		UniformLink<glm::mat4*> model;
 		UniformLink<glm::vec3>  camPosition;
 	} sharedUniforms;
 
-	struct LightProperties {
-	public:
+	struct PointLightProperties {
 		glm::vec4 position; 
 		glm::vec4 color;
 		glm::vec4 properties;
-		enum { MAX_LIGHTS = 5 };
+	};
+
+	struct DirectionalLightProperties {
+		glm::vec4 direction;
+		glm::vec4 properties;
 	};
 
 	virtual std::string vertexShaderSource() = 0;
