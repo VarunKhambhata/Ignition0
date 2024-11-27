@@ -9,7 +9,7 @@ link = ['glfw', 'GL', 'GLEW']
 
 src = [	
 	'Ignition0.cpp',
-	'Ignition0Core/Camera.cpp',	
+	'Ignition0Core/Camera.cpp',
 	'Ignition0Core/Cube.cpp',
 	'Ignition0Core/DirectionalLight.cpp',
 	'Ignition0Core/IgnitionInputs.cpp',
@@ -63,7 +63,7 @@ def distributeJobs(checkUpdate):
 	size = len(src)
 	part = int(size / build_threads)
 	rem  = int(size % build_threads)
-	
+
 	start = 0
 	end   = 0
 	compile_thread = []
@@ -87,7 +87,7 @@ def buildObjs(start, end, linkGCC, checkUpdate):
 		for i in range(start, end):
 			if thread_exception.is_set(): return
 
-			srcPath = 'src/' + str(src[i])			
+			srcPath = 'src/' + str(src[i])
 			outPath = outDir + str(i)
 			
 			if checkUpdate and os.path.isfile(outPath):
@@ -100,28 +100,69 @@ def buildObjs(start, end, linkGCC, checkUpdate):
 	except:
 		thread_exception.set()
 
-def getTimeStamp(path):
-	timestamp = os.path.getmtime(path)
-	for dirpath, subdinames, filenames in os.walk(path):
-		timestamp = max(timestamp, os.path.getmtime(dirpath))
-	return timestamp
+
+class QuickBuildCheck:
+	def getTimeStamp(path):
+		timestamp = os.path.getmtime(path)
+		for dirpath, subdinames, filenames in os.walk(path):
+			timestamp = max(timestamp, os.path.getmtime(dirpath))
+		return timestamp
+
+	def isUpdated(root, buildTime, ignore=[], directoryOnly=False):
+		if buildTime < os.path.getmtime(root):
+			return True
+
+		ret = False
+		for entry in os.scandir(root):
+			if(entry.is_dir()):
+				if entry.name in ignore:
+					if buildTime < os.path.getmtime(entry.path):
+						return True
+				else:
+					ret = QuickBuildCheck.isUpdated(entry.path, buildTime, ignore, directoryOnly)
+
+			if ret:
+				return True
+
+			if(entry.is_file() and not directoryOnly):
+				if buildTime < os.path.getmtime(entry.path):
+					return True
+
+		return ret
+
+	def checkIncludesUpdated(buildTime):
+		return buildTime < QuickBuildCheck.getTimeStamp('Ignition0.h') \
+				or QuickBuildCheck.isUpdated('Ignition0Supplement', buildTime) \
+				or QuickBuildCheck.isUpdated('Ignition0Core', buildTime, ['glm'])
+
+
+	def checkSourceUpdated(buildTime):
+		os.chdir('src')
+		ret = False
+		for f in src:
+			if os.path.getmtime(f) > buildTime:
+				ret = True
+				break
+		os.chdir('..')
+		return ret
+
 
 def buildIgnition0(checkUpdate=True):
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)
 		buildTime = 0
 	else:
-		buildTime = getTimeStamp(outDir)
+		buildTime = QuickBuildCheck.getTimeStamp(outDir)
 
 	if checkUpdate:
-		if buildTime < getTimeStamp(__file__):
+		if buildTime < QuickBuildCheck.getTimeStamp(__file__):
 			checkUpdate = False
-		elif buildTime < max(getTimeStamp('Ignition0.h'), getTimeStamp('Ignition0Supplement'), getTimeStamp('Ignition0Core')):
+		elif QuickBuildCheck.checkIncludesUpdated(buildTime):
 			checkUpdate = False
-		elif buildTime < getTimeStamp('src'):
+		elif QuickBuildCheck.checkSourceUpdated(buildTime):
 			checkUpdate = True
 		elif os.path.isfile('libIgnition0.a'):
-			print('ALREADY EXIST: libIgnition0.a')
+			print('BUILD EXISTS: libIgnition0.a')
 			return
 
 	print("BUILDING ...")

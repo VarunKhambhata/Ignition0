@@ -53,7 +53,7 @@ void Model::onDraw(const RenderView& rView) {
     for(MeshGroup m: *meshes) {
         glBindVertexArray(m.VAO);
         glDrawArrays(GL_TRIANGLES, 0, m.vertexCount);
-    }    
+    }
 }
 
 
