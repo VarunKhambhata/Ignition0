@@ -16,7 +16,7 @@
 #ifndef __Ignition0Engine__
 #define __Ignition0Engine__
 
-
+#include <string>
 #include <GLFW/glfw3.h>
 #include <Ignition0Core/Scene.h>
 

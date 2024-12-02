@@ -77,7 +77,7 @@ void Material0::initInternalUniforms() {
     	// Associate the buffer with the buffer's binding point
     	// Actual buffer is bound to this binding point
     	glUniformBlockBinding(shaderProgram, ptlBlockIndex, Scene::UboBinding::POINT_LIGHTS);
-    }   
+    }
 }
 
 void Material0::destroy() {
@@ -171,7 +171,7 @@ std::string Material0::commonShaderLibSource = R"(
 		int totalDrLights;
 		DirectionalLightProp drLights[MAX_LIGHTS];
 	};
-	
+
 	layout(packed) uniform PointLights {
 		int totalPtLights;
 		PointLightProp ptLights[MAX_LIGHTS];

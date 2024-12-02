@@ -8,7 +8,7 @@
 #include <Ignition0Core/Object0.h>
 
 
-void 		 Object0::add(m<Object0> obj) 				{ child.push_back(obj);								  }
+void 		 Object0::add(m<Object0> obj) 				{ child.push_back(obj);		PENDING_STATE |= 16;	  }
 void 		 Object0::setMaterial(m<Material0> mat) 	{ material = mat ? mat : internal::Ignition0.missing; }
 m<Material0> Object0::getMaterial()  					{ return material;   								  }
 glm::mat4&	 Object0::getGlobalTransformation() 		{ return TransfromationGlobal; 						  }
@@ -17,8 +17,9 @@ glm::vec3 	 Object0::getRotation() 					{ return Rotation; 		 							  }
 glm::vec3 	 Object0::getScale()	 					{ return Scale; 		 							  }
 void Object0::setVisible(bool visibility)				{ visible = visibility;								  }
 bool Object0::isVisible()								{ return visible; 									  }
+bool Object0::onExtension()								{ return false;										  }
 
-Object0::Object0(): visible(true), TransfromationGlobal(1), Orientation(1), Position(0), Rotation(0), Scale(1), PENDING_STATE(POSITION_CHANGED|ROTATION_CHANGED), STATE(0) {}
+Object0::Object0(): visible(true), childVisible(true), TransfromationGlobal(1), Orientation(1), Position(0), Rotation(0), Scale(1), PENDING_STATE(POSITION_CHANGED|ROTATION_CHANGED), STATE(0) {}
 
 void Object0::onDraw(const RenderView& rView) {}
 
@@ -29,6 +30,10 @@ void Object0::draw(const RenderView& rView) {
 			c->draw(rView);
 		}
 	}
+}
+
+void Object0::requestDraw(Object0& object, const RenderView& rView) {
+	object.draw(rView);
 }
 
 uint8_t Object0::update(const glm::mat4& parentTransform, uint8_t parentState) {
@@ -119,4 +124,18 @@ void Object0::setScale(float x, float y, float z) {
 	Scale.z = z;
 
 	PENDING_STATE |= SCALE_CHANGED;
+}
+
+void Object0::childList(std::vector<m<Object0>>::iterator& begin, std::vector<m<Object0>>::iterator& end) {
+	begin = child.begin();
+	end = child.end();
+}
+
+void Object0::extend(void callback(const void*), const void *obj) {
+	if(onExtension()) {
+		callback(obj);
+	}
+	
+	for(m<Object0> c: child)
+		c->extend(callback, obj);
 }
