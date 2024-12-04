@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "Ignition0Core/ModelParsers/tiny_obj_loader.h"
+#include <ModelParsers/tiny_obj_loader.h>
 
 #include <Ignition0Core/Model.h>
 

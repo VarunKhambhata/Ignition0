@@ -5,7 +5,8 @@
 
 build_threads = 6
 
-link = ['glfw', 'GL', 'GLEW']
+link_linux = ['glfw', 'GL', 'GLEW']
+link_windows = ['glew32', 'opengl32', 'glfw3', 'gdi32']
 
 src = [	
 	'Ignition0.cpp',
@@ -38,6 +39,7 @@ import sys
 import math
 import getopt
 import os.path
+import platform
 import argparse
 import threading
 
@@ -47,7 +49,7 @@ thread_lock = threading.Lock()
 outDir = '.out/'
 
 def makeIgnition0GCC(cpp, o, link):
-	return 'g++ -Bstatic -c ' + cpp + ' -o ' + o + r' -I . -I ./Ignition0Core/glm -L.' + link
+	return 'g++ -DGLEW_STATIC -c ' + cpp + ' -o ' + o + r' -I . -I ./Ignition0Core/external -L.' + link
 
 def makeLinkGCC():
 	linkGCC = ''
@@ -67,7 +69,7 @@ def distributeJobs(checkUpdate):
 	start = 0
 	end   = 0
 	compile_thread = []
-	linkGCC = makeLinkGCC()
+	linkGCC = ''
 
 	for i in range(0,build_threads):
 		start = end
@@ -133,7 +135,7 @@ class QuickBuildCheck:
 	def checkIncludesUpdated(buildTime):
 		return buildTime < QuickBuildCheck.getTimeStamp('Ignition0.h') \
 				or QuickBuildCheck.isUpdated('Ignition0Supplement', buildTime) \
-				or QuickBuildCheck.isUpdated('Ignition0Core', buildTime, ['glm'])
+				or QuickBuildCheck.isUpdated('Ignition0Core', buildTime, ['external'])
 
 
 	def checkSourceUpdated(buildTime):
@@ -178,6 +180,19 @@ def buildIgnition0(checkUpdate=True):
 
 
 ##### main #####
+os_system = platform.system()
+if os_system == 'Windows':
+    link = link_windows
+    executable_prefix = '.\\'
+    executable_suffix = '.exe'
+elif os_system == 'Linux':
+    link = link_linux
+    executable_prefix = './'
+    executable_suffix = ''
+else:
+    print(f"{os_system} not supported")
+    exit(0)
+
 if len(sys.argv) == 1:
 	buildIgnition0()
 else:
@@ -191,12 +206,12 @@ else:
 	if args.a:
 		try:
 			print('\nBUILDING APPLICATION ...')
-			run('g++ ' + args.a + ' -o ' + args.a.split('.cpp')[0] + r' -I./ -I./Ignition0Core/glm -L. -lIgnition0' + makeLinkGCC() + ' -no-pie')
+			run('g++  -DGLEW_STATIC ' + args.a + ' -o ' + args.a.split('.cpp')[0] + ' -I. -I Ignition0Core/external -L. -L Ignition0Core/external -lIgnition0' + makeLinkGCC())
 			print('APPLICATION BUILD FINISHED')
 
-			pattern = r'^(.+)\/([^\/]+)$'
+			pattern = r'^(.+)[/\\]([^/\\]+)$'
 			match = re.match(pattern, args.a)
 			os.chdir(match.group(1))
-			run('./' + match.group(2).split('.cpp')[0])
+			run(executable_prefix + match.group(2).split('.cpp')[0] + executable_suffix)
 		except:
 			print('APPLICATION BUILD FAILED')

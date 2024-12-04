@@ -168,7 +168,7 @@ void LitImage::setTexture(GLuint tex) {
 void LitImage::setTexture(const char* imgFile) {
 	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char *data = stbi_load(imgFile, &width, &height, &nrChannels, 0);	
+	unsigned char *data = stbi_load(imgFile, &width, &height, &nrChannels, 0);
 
 	if(data) {
 		glGenTextures(1, &texture);

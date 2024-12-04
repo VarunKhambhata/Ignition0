@@ -2,8 +2,6 @@
  * Author:	Varun Khambhata
  * Created: 12.08.2023
 **/
-
-#define GLEW_STATIC
 #define i0 __engine__
 
 #include <iostream>
@@ -51,7 +49,7 @@ namespace ______________ {
 			    }
 
 			    // glfwSetWindowPos(window, (mode->width - scrSize.x) / 2, (mode->height - scrSize.y) / 2);
-			    glfwMakeContextCurrent(window);			    
+			    glfwMakeContextCurrent(window);
 				glfwSetKeyCallback(window, key_callback);
 				glfwSetMouseButtonCallback(window, mouse_button_callback);
 				glfwSetCursorPosCallback(window, cursor_position_callback);
@@ -79,7 +77,7 @@ namespace ______________ {
 					*Keys.map[key] = action;
 			}
 
-			void i0::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {				
+			void i0::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
 				Mouse.pos(static_cast<int>(xpos), static_cast<int>(ypos));
 			}
 
