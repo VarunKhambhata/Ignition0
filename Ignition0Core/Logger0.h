@@ -17,10 +17,10 @@
 	#include <iostream>
 
 	#define Logger0(String) \
-			std::cout << GREEN << "Ω " << String <<std::endl << RESET
+			std::cout << GREEN << "I: " << String <<std::endl << RESET
 
 	#define Logger0E(String) \
-			std::cout << RED << "Θ " << String <<std::endl << RESET
+			std::cout << RED << "E: " << String <<std::endl << RESET
 
 #else
 	#define Logger0(String)

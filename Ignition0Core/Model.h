@@ -18,13 +18,15 @@ private:
 
 	m<std::vector<MeshGroup>> meshes;
 
+protected:
+	void onDraw(RenderInfo& rInfo) override;
+
 public:
 	Model();
 	~Model();
-
+	
 	m<Model> clone();
-	void load(std::string filename);
-	void onDraw(const RenderView& rView) override;
+	void 	 load(std::string filename);
 };
 
 #endif

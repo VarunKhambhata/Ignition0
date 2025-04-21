@@ -6,46 +6,28 @@
 #ifndef __INTERNALIGNITION0__
 #define __INTERNALIGNITION0__
 
-#include <memory>
 #include <glm/glm.hpp>
+
+#include <Ignition0Core/Ignition0Environment.h>
+#include <Ignition0Core/Object0.h>
 #include <Ignition0Core/UnlitColor.h>
-#include <Ignition0Core/UnlitImage.h>
+#include <Ignition0Core/ColorImage2D.h>
 
-template <typename T>
-using m = std::shared_ptr<T>;
+namespace InternalIgnition0 {
+	extern const glm::mat4 IDENTITY;
+	extern const glm::vec3 ORIGIN;
 
-template<typename T, typename... Args>
-std::shared_ptr<T> make(Args&&... args) {
-    return std::make_shared<T>(std::forward<Args>(args)...);
-}
+	extern m<UnlitColor> missing;
+	extern m<ColorImage2D> colorImage;
+	extern m<Object0> plane;
 
-enum Detail {
-	LOW,
-	MEDIUM,
-	HIGH,
-	ULTRA,
-};
+	extern const unsigned int MAX_LIGHT;
+	extern GLuint identityMat4SSBO;
 
-#define MAX_LIGHT 1024
-
-namespace internal {
-	class __engine__ {
-	private:
-		glm::ivec2 _displaySize;
-		bool _initialized;
-		Detail detailLevel;
-
-	public:
-		bool initialize();
-		void displaySize(int w, int h);
-		glm::ivec2 displaySize();
-		void setDetailLevel(Detail level);
-		Detail preferedDetail();
-		m<UnlitColor> missing;
-		m<UnlitImage> colorImage;
-		static const glm::mat4 IDENTITY;
-		static const glm::vec3 ORIGIN;
-	} extern Ignition0;
+	glm::ivec2 displaySize();
+	Detail 	   preferedDetail();
+	float	   deltaTime();
+	void	   enableInstanceMat4(GLuint &ssbo);
 }
 
 #endif

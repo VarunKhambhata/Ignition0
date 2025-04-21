@@ -5,8 +5,9 @@
 
 #include <GL/glew.h>
 
-#include <Ignition0Core/Sphere.h>
+#include <Ignition0Core/InternalIgnition0.h>
 #include <Ignition0Supplement/VoidMemory0.h>
+#include <Ignition0Core/Sphere.h>
 
 static VoidMemory0 sphereSharedMem;
 
@@ -29,7 +30,7 @@ Sphere::Sphere() {
 	float sectorCount;
 	float stackCount;
 
-	switch(internal::Ignition0.preferedDetail()) {
+	switch(InternalIgnition0::preferedDetail()) {
 		case Detail::LOW:    sectorCount = stackCount = 06; break;
 		case Detail::MEDIUM: sectorCount = stackCount = 10; break;
 		case Detail::HIGH:   sectorCount = stackCount = 18; break;
@@ -126,20 +127,12 @@ Sphere::~Sphere() {
 	}
 }
 
+void Sphere::onDraw(RenderInfo& rInfo) {
+	if(material->sharedUniforms.model.hasLocation)
+        material->sharedUniforms.model = &getGlobalTransformation();
 
-void Sphere::onDraw(const RenderView& rView) {
 	material->use();
 
-    glm::mat4 mvp = rView.Projection * getGlobalTransformation();
-    material->sharedUniforms.mvp = &mvp;
-
-    if(material->sharedUniforms.model.hasLocation)
-        material->sharedUniforms.model = &getGlobalTransformation();
-    
-    if(material->sharedUniforms.camPosition.hasLocation)
-        material->sharedUniforms.camPosition = rView.Position;
-
-	material->updateSharedUniforms();
 	glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, polygons, GL_UNSIGNED_INT, (void*)0);
+    glDrawElementsInstanced(GL_TRIANGLES, polygons, GL_UNSIGNED_INT, (void*)0, rInfo.DrawInstances);
 }

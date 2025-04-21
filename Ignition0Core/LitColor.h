@@ -10,27 +10,22 @@
 
 class LitColor: public Material0 {
 private:
-	GLint uniR, uniG, uniB;
-	GLint uniAmbient, uniDiffuse, uniSpecular;
+	UniformLink<glm::vec3> color;
+	UniformLink<float> ambient;
+	UniformLink<float> diffuse;
+	UniformLink<float> specular;
+	UniformLink<float> shininess;
 
-public:	
-	struct {
-		UniformLink<glm::vec3> color;
-		UniformLink<float> ambient;
-		UniformLink<float> diffuse;
-		UniformLink<float> specular;
-		UniformLink<float> shininess;
-	} uniforms;
+protected:
+	void onUsed() override;
+	void initUniforms() override;
+	std::string fragmentShaderSource() override;
+	std::string vertexShaderSource() override;
+	AttribNames bindShaderAttribs() override;	
 
-
-	std::string fragmentShaderSource();
-	std::string vertexShaderSource();
-
-	LitColor(float r, float g, float b, float ambient, float diffuse, float specular, float shininess = 32);
-
-	void onUsed();
-	void initUniforms();
-	void onUniformsUpdate();
+public:
+	LitColor();
+	void setMaterialProperties(float r, float g, float b, float ambient, float diffuse, float specular, float shininess = 32);
 };
 
 #endif

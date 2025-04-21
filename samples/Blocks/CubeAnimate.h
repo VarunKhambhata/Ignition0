@@ -4,12 +4,16 @@
 **/
 
 #include <Ignition0Core/Script0.h>
+#include <Ignition0Core/InternalIgnition0.h>
 
 class CubeAnimate: public Script0 {
 	void start() {}
 
 	void update() {
-		translate(0.004, -0.004, 0.004);
+		float move = 0.8 * InternalIgnition0::deltaTime();
+		float rot = 100 * InternalIgnition0::deltaTime();
+
+		translate(move, -move, move);
 
 		glm::vec3 pos = getPosition();
 
@@ -21,7 +25,7 @@ class CubeAnimate: public Script0 {
 
 		setPosition(pos.x, pos.y, pos.z);
 
-		int dir = pos.x < 0 ? -1 : 1;
-		rotate(0.1 * dir, 0.15 * dir, 0.05 * dir);
+		int dir = (pos.x < 0 ? -1 : 1);
+		rotate(0.l * dir * rot, 0.15 * dir * rot, 0.05 * dir * rot);
 	}
 };

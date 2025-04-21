@@ -6,16 +6,9 @@
 #ifndef __IGNITIONINPUTS__
 #define __IGNITIONINPUTS__
 
-namespace ______________ {
-	namespace ________{
-		namespace _0 {
-			class __engine__;
-		}
-	}
-}
+class EngineCore;
 
 namespace inputs {
-
 	class Key {
 	private:
 		bool _pressed, _hold;
@@ -24,8 +17,7 @@ namespace inputs {
 	public:
 		Key();
 		bool pressed, hold;
-
-		friend class ______________::________::_0::__engine__;
+		friend class ::EngineCore;
 	};
 
 	template <typename T>
@@ -34,18 +26,12 @@ namespace inputs {
 		T _value;
 		T _delta;
 
-		void operator=(T val) {
-			delta = _delta = _value - val;
-			value = _value = val;
-		}
-		void operator=(Axis& other) {
-			value = other.value;
-			delta = other.delta;
-		}
+		void operator=(T val);
+		void operator=(Axis& other);
 
 	public:
 		T value;
-		T delta;		
+		T delta;
 
 		friend class MouseDevice;
 	};
@@ -63,13 +49,13 @@ namespace inputs {
 
 		Keyset();
 
-		friend class ______________::________::_0::__engine__;
+		friend class ::EngineCore;
 	};
 
 	class MouseDevice {
 	private:
 		Axis<int> _x, _y;
-		Key* keyMap[2];	
+		Key* keyMap[2];
 
 		void pos(int X, int Y);
 		void clearDelta();
@@ -79,8 +65,7 @@ namespace inputs {
 		Axis<int> x, y;
 
 		MouseDevice();
-
-		friend class ______________::________::_0::__engine__;
+		friend class ::EngineCore;
 	};
 }
 

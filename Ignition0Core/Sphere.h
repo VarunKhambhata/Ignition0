@@ -9,14 +9,14 @@
 #include <Ignition0Core/Object0.h>
 
 class Sphere: public Object0 {
-private:	
+private:
 	unsigned int VAO, VBO, EBO;
 	unsigned int polygons;
+	void onDraw(RenderInfo& rInfo) override;
 
 public:
 	Sphere();
 	~Sphere();
-	void onDraw(const RenderView& rView) override;
 };
 
 #endif

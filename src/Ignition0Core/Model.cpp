@@ -3,18 +3,13 @@
  * Created: 12.07.2024
 **/
 
-#include <fstream> 
-#include <cstring>
+#include <fstream>
 #include <GL/glew.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <ModelParsers/tiny_obj_loader.h>
-
-#include <Ignition0Core/Model.h>
-
 #include <Ignition0Core/Logger0.h>
-#include <Ignition0Core/LitColor.h>
-
+#include <Ignition0Core/Model.h>
 
 Model::Model() {
     meshes = make<std::vector<MeshGroup>>();
@@ -36,23 +31,15 @@ m<Model> Model::clone() {
     return clone;
 }
 
-void Model::onDraw(const RenderView& rView) {
-    material->use();
-
-    glm::mat4 mvp = rView.Projection * getGlobalTransformation();
-    material->sharedUniforms.mvp = &mvp;
-
+void Model::onDraw(RenderInfo& rInfo) {
     if(material->sharedUniforms.model.hasLocation)
         material->sharedUniforms.model = &getGlobalTransformation();
-    
-    if(material->sharedUniforms.camPosition.hasLocation)
-        material->sharedUniforms.camPosition = rView.Position;
 
-    material->updateSharedUniforms();
+    material->use();
 
     for(MeshGroup m: *meshes) {
         glBindVertexArray(m.VAO);
-        glDrawArrays(GL_TRIANGLES, 0, m.vertexCount);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, m.vertexCount, rInfo.DrawInstances);
     }
 }
 
@@ -121,7 +108,7 @@ void Model::load(std::string filename) {
         glGenBuffers(1, &m.VBO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m.VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 8 * buffer.size(), buffer.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * buffer.size(), buffer.data(), GL_STATIC_DRAW);
 
         // position attribute
         glEnableVertexAttribArray(AttribLocation::VERTEX);

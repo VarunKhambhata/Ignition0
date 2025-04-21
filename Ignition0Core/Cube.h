@@ -12,10 +12,12 @@ class Cube: public Object0 {
 private:
 	unsigned int VAO, VBO;
 
+protected:
+	void onDraw(RenderInfo& rInfo) override;
+
 public:
 	Cube();
 	~Cube();
-	void onDraw(const RenderView& rView) override;
 };
 
 #endif

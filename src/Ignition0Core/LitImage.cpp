@@ -5,47 +5,54 @@
 
 #include <GL/glew.h>
 
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
+#include <Ignition0Supplement/ImageUtil0.h>
 #include <Ignition0Core/LitImage.h>
-#include <Ignition0Core/stb_image.h>
-#include <Ignition0Core/Logger0.h>
 
-#include <Ignition0Supplement/VoidMemory0.h>
-
+static LitImage* currentUsedMaterial;
+static ShaderContext singleLIShaderContext;
 
 std::string LitImage::vertexShaderSource() {
 	return R"(
-		#version 330 core
-		layout (location = 0) in vec3 aPos;
-		layout (location = 1) in vec2 aTexCoords;
-		layout (location = 2) in vec3 aNormal;
+		#version 430 core
+	    in vec3 aVertex;
+	    in vec3 aNormal;
+		in vec2 aTexCoords;
+		in mat4 T;
 
-		uniform mat4 mvp;
-		uniform mat4 model;
-
-		out vec2 TexCoords;
-		out vec3 FragPos;
+	    out vec3 FragPos;
 	    out vec3 Normal;
+		out vec3 ViewPos;
+		out vec2 TexCoords;
 
+	    uniform mat4 model;
+
+		mat4 getProjection();
+		mat4 getView();
+		vec3 getCamPosition();
+		mat4 getInstancedTransfrom();
+		
 		void main()
 		{
-		    gl_Position = mvp * vec4(aPos, 1.0);
-		    FragPos = vec3(model * vec4(aPos, 1.0));
-	       	Normal = normalize(mat3(transpose(inverse(model))) * aNormal);
-		    TexCoords = aTexCoords;
+			mat4 instModel = getInstancedTransfrom() * model;
+		    gl_Position = getProjection() * getView() * instModel * vec4(aVertex, 1.0);
+	    	FragPos = vec3(instModel * vec4(aVertex, 1.0));
+	    	Normal = mat3(transpose(inverse(instModel))) * aNormal;
+			ViewPos = getCamPosition();
+			TexCoords = aTexCoords;
 		}
 	)";
 }
 
 std::string LitImage::fragmentShaderSource() {
 	return R"(
-		#version 330 core
+		#version 430 core
 
 		in vec3 FragPos;
 	    in vec3 Normal;
+		in vec3 ViewPos;
 		in vec2 TexCoords;
+
+		out vec4 FragColor;
 
 		uniform vec3 viewPos;
 		uniform sampler2D tex;
@@ -56,154 +63,65 @@ std::string LitImage::fragmentShaderSource() {
 		uniform float shininess;
 
 		int getMaxDirectionalLights();
-		vec3 getDirectionalLight(int index);
-		vec3 getDirectionalLightColor(int index);
-		float getDirectionalLightIntensity(int index);
+		int getMaxPointLights();
 
-		int getMaxLights();
-		vec3 getLightPosition(int index);
-		vec3 getLightColor(int index);
-		float getLightRadius(int index);
-		float getLightIntensity(int index);
-		float getLightFallOff(int index);
-
-
-		float attenuate_cusp(float distance, float radius, float max_intensity, float falloff) {
-			float s = min(distance / radius, 1.0);
-			float s2 = pow(s,2);
-			return max_intensity * pow(1 - s2,2) / (1 + falloff * s);
-		}
-
-		vec3 CalcDirectionalLight(vec3 lColor, vec3 lDirection, float lIntensity, vec3 viewDir, vec3 norm) {
-			// ambient
-			vec3 ambient = lColor * ambientStrength;
-			
-			// diffuse
-			float diffuseStrength = max(dot(norm, lDirection), 0.0);
-			vec3 diffuse = lColor * (diffuseStrength * diffStrength);
-
-			// specular - Blinn-Phong
-			vec3 halfwayDir       = normalize(lDirection + viewDir);
-    		float spec            = pow(max(dot(norm, halfwayDir), 0.0), shininess);
-			vec3 specular   	  = lColor * (spec * specularStrength);
-
-			// attenuation
-			return (ambient + diffuse + specular) * lIntensity;
-		}
-
-		vec3 PointLightEffect(vec3 lPosition, vec3 lColor, float radius, float intensity, float fallOff, vec3 viewDir, vec3 norm) {
-			// ambient
-    		vec3 ambient 		  = lColor * ambientStrength;
-
-    		// diffuse
-    		vec3 lightDir 		  = normalize(lPosition - FragPos);
-    		float diffuseStrength = max(dot(norm, lightDir), 0.0);
-    		vec3 diffuse 		  = lColor * (diffuseStrength * diffStrength);
-
-    		// specular - Blinn-Phong
-    		vec3 halfwayDir       = normalize(lightDir + viewDir);
-    		float spec            = pow(max(dot(norm, halfwayDir), 0.0), shininess);
-			vec3 specular   	  = lColor * (spec * specularStrength);
-
-			// attenuation
-			float distance    = length(lPosition - FragPos);
-			float attenuation = attenuate_cusp(distance, radius, intensity, fallOff);
-			ambient  *= attenuation;
-			diffuse  *= attenuation;
-			specular *= attenuation;
-
-    		return (ambient + diffuse + specular);
-		}
+		vec3 DirectionalLightEffect(int index, vec3 viewDir, vec3 norm, float ambientStrength, float diffStrength, float specularStrength, float shininess);
+		vec3 PointLightEffect(int pointLightIndex, vec3 viewDir, vec3 norm, vec3 FragPos, float ambientStrength, float diffStrength, float specularStrength, float shininess);
 
 		void main()
 		{
-		    vec4 texColor = texture2D(tex, TexCoords);
-
-		    vec3 result;
+		    vec3 effect;
 	    	vec3 norm    = normalize(Normal);
 	    	vec3 viewDir = normalize(viewPos - FragPos);
 
-	    	for(int i = 0; i < getMaxDirectionalLights(); i++) {
-	    		result += CalcDirectionalLight(getDirectionalLightColor(i), getDirectionalLight(i), getDirectionalLightIntensity(i), viewDir, norm);
-	    	}
+	    	for(int i = 0; i < getMaxDirectionalLights(); i++)
+				effect += DirectionalLightEffect(i, viewDir, norm, ambientStrength, diffStrength, specularStrength, shininess);
+	    	
+	    	for(int i = 0; i < getMaxPointLights(); i++)
+				effect += PointLightEffect(i, viewDir, norm, FragPos, ambientStrength, diffStrength, specularStrength, shininess);
 
-	    	for(int i = 0; i < getMaxLights(); i++) {
-	    		vec3 lightPos        = getLightPosition(i);
-	    		vec3 lightColor      = getLightColor(i);
-	    		float lightRadius    = getLightRadius(i);
-	    		float lightIntensity = getLightIntensity(i);
-	    		float lightFallOff   = getLightFallOff(i);
-
-		    	result += PointLightEffect(lightPos, lightColor, lightRadius, lightIntensity, lightFallOff, viewDir, norm);
-	    	}
-
-		    gl_FragColor = texColor;
-		    gl_FragColor.rgb *= result;
+		    FragColor = texture2D(tex, TexCoords);
+		    FragColor.rgb *= effect;
 		}
     )";
 }
 
-LitImage::LitImage(bool init) {
-	build();
-	updateUniforms();
+AttribNames LitImage::bindShaderAttribs() {
+	return {"aVertex", "aTexCoords", "aNormal"};
+}
+
+LitImage::LitImage() {
+	build(&singleLIShaderContext);
 }
 
 void LitImage::setMaterialProperties(float ambient, float diffuse, float specular, float shininess) {
-	uniforms.ambient   = ambient;
-	uniforms.diffuse   = diffuse;
-	uniforms.specular  = specular;
-	uniforms.shininess = shininess;
-	updateUniforms();
+	this->ambient   = ambient;
+	this->diffuse   = diffuse;
+	this->specular  = specular;
+	this->shininess = shininess;
 }
 
 void LitImage::onUsed() {
 	glBindTexture(GL_TEXTURE_2D, texture);
-	updateUniforms();
+
+	if(currentUsedMaterial == this) return;
+	currentUsedMaterial = this;
+
+	glUniform1f(ambient, ~ambient);
+	glUniform1f(diffuse, ~diffuse);
+	glUniform1f(specular, ~specular);
+	glUniform1f(shininess, ~shininess);
 }
 
-void LitImage::setTexture(GLuint tex) {
-	texture = tex;
-}
-
-void LitImage::setTexture(const char* imgFile) {
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char *data = stbi_load(imgFile, &width, &height, &nrChannels, 0);
-
-	if(data) {
-		glGenTextures(1, &texture);
-	 	glBindTexture(GL_TEXTURE_2D, texture);
-    
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		stbi_image_free(data);
-	}
-	else {
-		Logger0E("Missing Texture File: " << imgFile);
-	}
+void LitImage::loadImage(const char* imgFile) {
+	texture = ImageUtil0::LoadImageTexture(imgFile);
 }
 
 void LitImage::initUniforms() {
-	sharedUniforms.mvp(getLocation("mvp"));
 	sharedUniforms.model(getLocation("model"));
-	sharedUniforms.camPosition(getLocation("viewPos"));
 
-	uniforms.ambient(getLocation("ambientStrength"));
-	uniforms.diffuse(getLocation("diffStrength"));
-	uniforms.specular(getLocation("specularStrength"));
-	uniforms.shininess(getLocation("shininess"));
-}
-
-
-void LitImage::onUniformsUpdate() {
-	glUniform1f(uniforms.ambient, ~uniforms.ambient);
-	glUniform1f(uniforms.diffuse, ~uniforms.diffuse);
-	glUniform1f(uniforms.specular, ~uniforms.specular);
-	glUniform1f(uniforms.shininess, ~uniforms.shininess);
+	ambient(getLocation("ambientStrength"));
+	diffuse(getLocation("diffStrength"));
+	specular(getLocation("specularStrength"));
+	shininess(getLocation("shininess"));
 }

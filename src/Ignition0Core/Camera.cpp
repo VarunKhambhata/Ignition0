@@ -4,26 +4,39 @@
 **/
 
 #include <GL/glew.h>
-#include <glm/ext/matrix_clip_space.hpp>
 
+#include <glm/gtx/transform.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
+#include <Ignition0Core/InternalIgnition0.h>
+#include <Ignition0Core/Scene.h>
 #include <Ignition0Core/Camera.h>
 
 GLuint 	   Camera::getRenderedTexture()	{ return colorBuffer; }
 GLuint 	   Camera::getRenderedDepth()   { return depthBuffer; }
-glm::vec2  Camera::getViewPosition()    { return vPosition;   }
+glm::vec2  Camera::getViewPosition()    { return vPosition;	  }
 glm::vec2  Camera::getViewSize() 	    { return vSize;		  }
 glm::ivec2 Camera::getDisplayPosition() { return dPosition;	  }
 glm::ivec2 Camera::getDisplaySize()     { return dSize;		  }
 glm::mat4& Camera::getProjection()		{ return Projection;  }
 
 Camera::Camera(float x, float y, float width, float height): background(0,0,0,1), Front(0,0,1), Up(0,1,0), Right(1,0,0), Transformation(1) {
-	glm::vec2 display = internal::Ignition0.displaySize();
+	glm::vec2 display = InternalIgnition0::displaySize();
 	vPosition.x = x; 				vSize.x = width;
 	vPosition.y = y;				vSize.y = height;
 	dPosition.x = x * display.x;	dSize.x = width  * display.x;
 	dPosition.y = y * display.y;	dSize.y = height * display.y;
 
-	material = internal::Ignition0.colorImage;
+	material = InternalIgnition0::colorImage;
+	visible = false;
+
+	// init uniformm buffer
+	glGenBuffers(1, &cameraUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4)*2 + sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);	
 
 	// init framebuffer
 	glGenFramebuffers(1, &frameBuffer);
@@ -45,9 +58,7 @@ Camera::Camera(float x, float y, float width, float height): background(0,0,0,1)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, dSize.x, dSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);
-
-	visible = false;
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);	
 }
 
 Camera::~Camera() {	
@@ -56,9 +67,12 @@ Camera::~Camera() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 	glDeleteTextures(1, &colorBuffer);
 	glDeleteTextures(1, &depthBuffer);
+	glDeleteBuffers(1, &cameraUBO);
 }
 
 void Camera::open() {
+	glBindBufferBase(GL_UNIFORM_BUFFER, Scene::BufferBinding::CAMERA_VIEW, cameraUBO);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glViewport(0, 0, dSize.x, dSize.y);
 	glEnable(GL_DEPTH_TEST);
@@ -73,7 +87,7 @@ void Camera::close() {
 }
 
 void Camera::reload() {
-	glm::vec2 display = internal::Ignition0.displaySize();
+	glm::vec2 display = InternalIgnition0::displaySize();
 	dPosition.x = vPosition.x * display.x;
 	dPosition.y = vPosition.y * display.y;
 	dSize.x 	= vSize.x 	  * display.x;
@@ -88,7 +102,7 @@ void Camera::reload() {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	setProjection(FOV, near, far);
+	setProjection(FOV, nearPlane, farPlane);
 }
 
 void Camera::lookAt(float x, float y, float z) {
@@ -106,12 +120,15 @@ void Camera::lookAt(float x, float y, float z) {
 	PENDING_STATE |= ROTATION_CHANGED;
 }
 
-void Camera::setProjection(float FOV, float near, float far) {
+void Camera::setProjection(float FOV, float nearPlane, float farPlane) {
 	this->FOV = FOV;
-	this->near = near;
-	this->far = far;
-	Projection = glm::perspective(glm::radians(FOV), (float)dSize.x/dSize.y, near, far);
- 	Projection = glm::scale(Projection, glm::vec3(-1,1,1));
+	this->nearPlane = nearPlane;
+	this->farPlane = farPlane;
+	Projection = glm::perspectiveLH(glm::radians(FOV), (float)dSize.x/dSize.y, nearPlane, farPlane);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &Projection);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Camera::setBackground(float r, float g, float b, float a) {
@@ -152,10 +169,15 @@ void Camera::translate(float x, float y, float z) {
 
 void Camera::applyStateUpdate() {
 	if(PENDING_STATE)
-		Transformation = glm::lookAt(Position, Position + Front, Up);
-	getGlobalTransformation() = Transformation * glm::inverse(getGlobalTransformation());
-}
+		Transformation = glm::lookAt(Position, Position - Front, Up);
+	glm::mat4 view = Transformation * glm::inverse(getGlobalTransformation());
 
-const glm::mat4& Camera::prepChildUpdateTransformation() {
-	return internal::Ignition0.IDENTITY;
+	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), &view);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4)*2, sizeof(glm::vec3), &Position);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	Rotation.x = -Rotation.x;
+	Object0::applyStateUpdate();
+	Rotation.x = -Rotation.x;
 }

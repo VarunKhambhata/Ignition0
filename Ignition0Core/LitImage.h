@@ -11,26 +11,22 @@
 class LitImage: public Material0 {
 private:
 	GLuint texture;
-	GLint uniAmbient, uniDiffuse, uniSpecular;
+	UniformLink<float> ambient;
+	UniformLink<float> diffuse;
+	UniformLink<float> specular;
+	UniformLink<float> shininess;
 
+protected:
+	void onUsed() override;
+	void initUniforms() override;
+	std::string fragmentShaderSource() override;
+	std::string vertexShaderSource() override;
+	AttribNames bindShaderAttribs() override;
+	
 public:
-	struct {
-		UniformLink<float> ambient;
-		UniformLink<float> diffuse;
-		UniformLink<float> specular;
-		UniformLink<float> shininess;
-	} uniforms;
-
-	std::string fragmentShaderSource();
-	std::string vertexShaderSource();
-
-	LitImage(bool init = true);
-	void onUsed();
-	void setTexture(GLuint tex);
+	LitImage();	
 	void setMaterialProperties(float ambient, float diffuse, float specular, float shininess = 32);
-	void setTexture(const char* imgFile);
-	void initUniforms();
-	void onUniformsUpdate();
+	void loadImage(const char* imgFile);
 };
 
 #endif

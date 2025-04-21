@@ -5,30 +5,31 @@
 
 #include <GL/glew.h>
 
+#include <Ignition0Core/InternalIgnition0.h>
 #include <Ignition0Core/Scene.h>
 
-Scene::Scene(): screen(Plane()) {
-	switch(internal::Ignition0.preferedDetail()) {
-		case Detail::LOW:    directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/64; break;
-		case Detail::MEDIUM: directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/16; break;
-		case Detail::HIGH:   directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/02; break;
-		case Detail::ULTRA:  directLightBuffer.size = pointLightBuffer.size = MAX_LIGHT/01;	break;
+Scene::Scene() {
+	switch(InternalIgnition0::preferedDetail()) {
+		case Detail::LOW:    directLightBuffer.size = pointLightBuffer.size = InternalIgnition0::MAX_LIGHT/64; break;
+		case Detail::MEDIUM: directLightBuffer.size = pointLightBuffer.size = InternalIgnition0::MAX_LIGHT/16; break;
+		case Detail::HIGH:   directLightBuffer.size = pointLightBuffer.size = InternalIgnition0::MAX_LIGHT/02; break;
+		case Detail::ULTRA:  directLightBuffer.size = pointLightBuffer.size = InternalIgnition0::MAX_LIGHT/01; break;
 	}
 
 	int initSize = 0;
-
+	// Directional Lights UBO
 	glGenBuffers(1, &directLightBuffer.bufferObject);
-	glBindBuffer(GL_UNIFORM_BUFFER, directLightBuffer.bufferObject);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) * 4 + sizeof(Material0::DirectionalLightProperties) * directLightBuffer.size, nullptr, GL_DYNAMIC_DRAW);	// Allocate buffer memory
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &initSize);
-	glBindBufferBase(GL_UNIFORM_BUFFER, UboBinding::DIRECTIONAL_LIGHT, directLightBuffer.bufferObject);	// Bind the buffer to the binding point
-
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, directLightBuffer.bufferObject);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * 4 + sizeof(DirectionalLight::Properties) * directLightBuffer.size, nullptr, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int) * 4, &initSize);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BufferBinding::DIRECTIONAL_LIGHT, directLightBuffer.bufferObject);
+	// Point Lights UBO
 	glGenBuffers(1, &pointLightBuffer.bufferObject);
-	glBindBuffer(GL_UNIFORM_BUFFER, pointLightBuffer.bufferObject);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) * 4 + sizeof(Material0::PointLightProperties) * pointLightBuffer.size, nullptr, GL_DYNAMIC_DRAW);	// Allocate buffer memory
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &initSize);
-	glBindBufferBase(GL_UNIFORM_BUFFER, UboBinding::POINT_LIGHTS, pointLightBuffer.bufferObject);	// Bind the buffer to the binding point
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, pointLightBuffer.bufferObject);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * 4 + sizeof(PointLight::Properties) * pointLightBuffer.size, nullptr, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int) * 4, &initSize);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BufferBinding::POINT_LIGHTS, pointLightBuffer.bufferObject);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 Scene::~Scene() {
@@ -38,19 +39,16 @@ Scene::~Scene() {
 
 void Scene::clear() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Scene::updateFrame(Camera &cam) {
-	cam.close();
-
-	const RenderView rvScreen(internal::Ignition0.IDENTITY, internal::Ignition0.ORIGIN, internal::Ignition0.ORIGIN);
-
-	m<UnlitImage> mat = std::static_pointer_cast<UnlitImage>(cam.getMaterial());
+void Scene::drawFrame(Camera &cam) {
+	static RenderInfo rInfo(glm::vec3(0), glm::vec3(0), 1);
+	m<Material0> mat = cam.getMaterial();
 	mat->setTexture(cam.getRenderedTexture());
-	screen.setMaterial(mat);
-	screen.draw(rvScreen);
+	InternalIgnition0::plane->setMaterial(mat);
+	InternalIgnition0::plane->draw(rInfo);
 }
 
 void Scene::syncLights() {
@@ -64,9 +62,9 @@ void Scene::syncLights() {
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(int) * 4, &size);
 	}
 
-	for(m<Light0> light: DirectionalLights) {
+	for(m<Light0> light: DirectionalLights)
 		light->updateLight(directLightBuffer);
-	}
+
 
 	glBindBuffer(GL_UNIFORM_BUFFER, pointLightBuffer.bufferObject);
 	if(pointLightBuffer.needsUpdate) {
@@ -102,35 +100,33 @@ void Scene::add(m<DirectionalLight> light) {
 	directLightBuffer.needsUpdate = true;
 }
 
-void Scene::update() {
+bool Scene::update() {
 	uint8_t STATE = 0;
 
 	for(m<Object0> obj: Objects)
-		STATE |= obj->update(internal::Ignition0.IDENTITY);
+		STATE |= obj->update(InternalIgnition0::IDENTITY);
 
-	syncLights();
+	if(!((STATE | directLightBuffer.needsUpdate | pointLightBuffer.needsUpdate)))
+		return false;
 
 	clear();
+	syncLights();
+	Object0::drawAllowed = true;
 	for(m<Camera> cam: Cameras) {
-		if(STATE) {
-			const glm::mat4 viewProj = cam->getProjection() * cam->getGlobalTransformation();
-			const glm::mat4 uiProj   = glm::scale(cam->getProjection(), glm::vec3(-1,1,-1));
-			const glm::vec3 camPos   = cam->getPosition();
-			const glm::vec3 camRot   = cam->getRotation();
-			
-			const RenderView rv3D(viewProj, camPos, camRot);
-			const RenderView rvUI(uiProj, camPos, camRot);
+		RenderInfo rInfo(cam->getPosition(), cam->getRotation(), 1);
 
-			cam->open();
-			for(m<Object0> obj: Objects)
-				obj->draw(rv3D);
+		cam->open();
+		for(m<Object0> obj: Objects)
+			obj->draw(rInfo);
 
-			cam->visible = true;
-			cam->draw(rvUI);
-			cam->visible = false;
-		}
-		updateFrame(*cam);
+		cam->visible = true;
+		cam->draw(rInfo);
+		cam->visible = false;
+		cam->close();
+		drawFrame(*cam);
 	}
+	Object0::drawAllowed = false;
+	return true;
 }
 
 void Scene::resize() {

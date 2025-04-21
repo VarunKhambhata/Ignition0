@@ -12,10 +12,18 @@ class PointLight: public Light0 {
 private:
 	float Radius, FallOff;
 
+protected:
+	void updateUBO(const int index);
+
 public:
 	PointLight();
 	void setProperties(float radius, float fallOff);
-	void updateUBO(const int index);
+
+	struct Properties {
+		glm::vec4 position;
+		glm::vec4 color;
+		glm::vec4 properties;
+	};
 };
 
 #endif

@@ -17,35 +17,13 @@
 #define __Ignition0Engine__
 
 #include <string>
-#include <GLFW/glfw3.h>
 #include <Ignition0Core/Scene.h>
+#include <Ignition0Core/Ignition0Environment.h>
 
-namespace ______________ {
-	namespace ________ {
-		namespace _0 {
-				class __engine__ {
-				private:
-					static std::string title;
-					static GLFWwindow* window;
-					static m<Scene>    currentScene;
-
-					static void initialize();
-					static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-					static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-					static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
-					static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-					static void renderLoop();
-
-				public:
-					static void start(std::string title, int width = 0, int height = 0);
-					static void ignite(m<Scene> scene);
-					static void setDetail(Detail level);
-				};
-			}
-	}
-}
-
-static ______________::________::_0::__engine__
-Ignition0;
+namespace Ignition0 {
+	extern void launch(std::string title, int width = 0, int height = 0);
+	extern void setDetail(Detail level);
+	extern void ignite(m<Scene> scene);
+};
 
 #endif

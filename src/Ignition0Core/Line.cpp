@@ -5,8 +5,8 @@
 
 #include <GL/glew.h>
 
-#include <Ignition0Core/Line.h>
 #include <Ignition0Supplement/VoidMemory0.h>
+#include <Ignition0Core/Line.h>
 
 static VoidMemory0 lineSharedMem;
 
@@ -52,21 +52,14 @@ Line::~Line() {
     }
 }
 
-void Line::onDraw(const RenderView& rView) {
-	material->use();
-
-    glm::mat4 mvp = rView.Projection * getGlobalTransformation();
-    material->sharedUniforms.mvp = &mvp;
-
+void Line::onDraw(RenderInfo& rInfo) {
     if(material->sharedUniforms.model.hasLocation)
         material->sharedUniforms.model = &getGlobalTransformation();
-    
-    if(material->sharedUniforms.camPosition.hasLocation)
-        material->sharedUniforms.camPosition = rView.Position;
 
-	material->updateSharedUniforms();
+	material->use();
+
 	glBindVertexArray(VAO);
 	glLineWidth(Scale.z);
-    glDrawArrays(GL_LINES, 0, 2);
+    glDrawArraysInstanced(GL_LINES, 0, 2, rInfo.DrawInstances);
     glLineWidth(1);
 }

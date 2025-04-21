@@ -3,41 +3,49 @@
  * Created: 12.08.2023
 **/
 
+#include <glm/gtx/transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
+#include <Ignition0Core/InternalIgnition0.h>
 #include <Ignition0Core/Object0.h>
 
+void 		 Object0::add(m<Object0> obj) 			{ child.push_back(obj);	PENDING_STATE |= 16; }
+void 		 Object0::setMaterial(m<Material0> mat) { material = mat; 							 }
+m<Material0> Object0::getMaterial()  				{ return material;   						 }
+glm::mat4&	 Object0::getGlobalTransformation() 	{ return TransfromationGlobal; 				 }
+glm::vec3 	 Object0::getPosition() 				{ return Position; 		 					 }
+glm::vec3 	 Object0::getRotation() 				{ return Rotation; 		 					 }
+glm::vec3 	 Object0::getScale()	 				{ return Scale; 		 					 }
+void Object0::setVisible(bool visibility)			{ visible = visibility;						 }
+bool Object0::isVisible()							{ return visible; 							 }
+bool Object0::onExtension()							{ return false;								 }
+bool Object0::drawAllowed = false;
 
-void 		 Object0::add(m<Object0> obj) 				{ child.push_back(obj);		PENDING_STATE |= 16;	  }
-void 		 Object0::setMaterial(m<Material0> mat) 	{ material = mat ? mat : internal::Ignition0.missing; }
-m<Material0> Object0::getMaterial()  					{ return material;   								  }
-glm::mat4&	 Object0::getGlobalTransformation() 		{ return TransfromationGlobal; 						  }
-glm::vec3 	 Object0::getPosition() 					{ return Position; 		 							  }
-glm::vec3 	 Object0::getRotation() 					{ return Rotation; 		 							  }
-glm::vec3 	 Object0::getScale()	 					{ return Scale; 		 							  }
-void Object0::setVisible(bool visibility)				{ visible = visibility;								  }
-bool Object0::isVisible()								{ return visible; 									  }
-bool Object0::onExtension()								{ return false;										  }
+Object0::Object0(): visible(true), childVisible(true), TransfromationGlobal(1), Orientation(1),
+					Position(0), Rotation(0), Scale(1), PENDING_STATE(POSITION_CHANGED|ROTATION_CHANGED), STATE(0),
+					material(InternalIgnition0::missing) 
+					{}
 
-Object0::Object0(): visible(true), childVisible(true), TransfromationGlobal(1), Orientation(1), Position(0), Rotation(0), Scale(1), PENDING_STATE(POSITION_CHANGED|ROTATION_CHANGED), STATE(0) {}
+void Object0::onDraw(RenderInfo& rInfo) {}
 
-void Object0::onDraw(const RenderView& rView) {}
-
-void Object0::draw(const RenderView& rView) {
+void Object0::draw(RenderInfo& rInfo) {
 	if(visible) {
-		onDraw(rView);
-		for(m<Object0> c: child) {
-			c->draw(rView);
+		onDraw(rInfo);
+		if(childVisible) {
+			for(m<Object0> c: child)
+				c->draw(rInfo);
 		}
 	}
 }
 
-void Object0::requestDraw(Object0& object, const RenderView& rView) {
-	object.draw(rView);
+void Object0::requestDraw(Object0& object, RenderInfo& rInfo) {
+	if(drawAllowed)
+		object.draw(rInfo);
 }
 
 uint8_t Object0::update(const glm::mat4& parentTransform, uint8_t parentState) {
-	for(m<Script0> s: script) s->update();
+	for(m<Script0> s: script) 
+		s->update();
 
 	STATE = PENDING_STATE;
 
@@ -48,9 +56,10 @@ uint8_t Object0::update(const glm::mat4& parentTransform, uint8_t parentState) {
 	}
 
 	uint8_t CHILD_STATE = 0;
-	for(m<Object0> c: child)
-		CHILD_STATE |= c->update(prepChildUpdateTransformation(), STATE);
-
+	for(m<Object0> c: child) {
+		CHILD_STATE |= c->update(prepChildUpdateTransformation(), STATE | parentState);
+	}
+	
 	return STATE | CHILD_STATE;
 }
 
@@ -74,14 +83,14 @@ void Object0::applyStateUpdate() {
 	TransfromationGlobal *= glm::translate(Position) * Orientation;
 }
 
-void Object0::addScript(m<Script0> script) {
+void Object0::add(m<Script0> script) {
 	if(script->bindTo(this)) {
 		script->start();
 		this->script.push_back(script);
 	}
 }
 
-void Object0::setPosition(float x, float y, float z) {	
+void Object0::setPosition(float x, float y, float z) {
 	Position.x = x;
 	Position.y = y;
 	Position.z = z;
@@ -135,7 +144,7 @@ void Object0::extend(void callback(const void*), const void *obj) {
 	if(onExtension()) {
 		callback(obj);
 	}
-	
+
 	for(m<Object0> c: child)
 		c->extend(callback, obj);
 }

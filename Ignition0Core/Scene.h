@@ -8,7 +8,6 @@
 
 #include <Ignition0Core/Object0.h>
 #include <Ignition0Core/Camera.h>
-#include <Ignition0Core/Plane.h>
 #include <Ignition0Core/DirectionalLight.h>
 #include <Ignition0Core/PointLight.h>
 
@@ -22,25 +21,29 @@ private:
 
 	Light0::LightBuffer directLightBuffer, pointLightBuffer;
 
-	Plane screen;
-
 	void clear();
-	void updateFrame(Camera &cam);
 	void syncLights();
+	void drawFrame(Camera &cam);
 
 public:
 	Scene();
 	~Scene();
+
 	void add(m<Object0> obj);
 	void add(m<Camera> cam);
 	void add(m<PointLight> light);
 	void add(m<DirectionalLight> light);
 	
-	void update();
+	bool update();
 	void resize();
 	void pickCenterPixel(glm::vec2 sz);
 
-	enum UboBinding { DIRECTIONAL_LIGHT = 0, POINT_LIGHTS = 1 };
+	enum BufferBinding {
+		DIRECTIONAL_LIGHT = 0,
+		POINT_LIGHTS = 1,
+		CAMERA_VIEW = 2,
+		INSTANCED_TRANSFORM = 3,
+	};
 };
 
 #endif

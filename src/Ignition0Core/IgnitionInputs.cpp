@@ -1,4 +1,3 @@
-#include <Ignition0.h>
 #include <Ignition0Core/IgnitionInputs.h>
 
 namespace inputs {
@@ -53,4 +52,16 @@ namespace inputs {
 	void MouseDevice::clearDelta() {
 		_x.delta = x.delta = _y.delta = y.delta = 0;
 	}
-}
+
+	template <typename T>
+	void Axis<T>::operator=(T val) {
+		delta = _delta = _value - val;
+		value = _value = val;
+	}
+
+	template <typename T>
+	void Axis<T>::operator=(Axis<T>& other) {
+		value = other.value;
+		delta = other.delta;
+	}
+};

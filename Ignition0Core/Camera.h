@@ -14,19 +14,20 @@ private:
 	glm::ivec2 dPosition, dSize;
 	glm::vec4  background;
 
+	GLuint cameraUBO;
 	GLuint frameBuffer;
 	GLuint colorBuffer;
 	GLuint depthBuffer;
 
-	float FOV, near, far;
+	float FOV, nearPlane, farPlane;
 
 	glm::vec3 Front, Right, Up;
 
 	glm::mat4 Projection, Transformation;
-
+	
+	
 protected:
-	void applyStateUpdate() override final;	
-	const glm::mat4& prepChildUpdateTransformation() override final;
+	void applyStateUpdate() override final;
 
 public:
 	Camera(float x = 0, float y = 0, float width = 1, float height = 1);
@@ -45,7 +46,7 @@ public:
 	void reload();
 
 	void lookAt(float x, float y, float z);
-	void setProjection(float FOV, float near, float far);
+	void setProjection(float FOV, float nearPlane, float farPlane);
 	void setBackground(float r, float g, float b, float a = 1);
 
 	void rotate(float x, float y, float z) override;

@@ -12,16 +12,17 @@ class UnlitImage: public Material0 {
 private:
 	GLuint texture;
 
-public:
-	std::string fragmentShaderSource();
-	std::string vertexShaderSource();
+protected:
+	void onUsed() override;
+	void initUniforms() override;
+	std::string fragmentShaderSource() override;
+	std::string vertexShaderSource() override;
+	AttribNames bindShaderAttribs() override;
 
-	UnlitImage(bool init = true);
+public:
+	UnlitImage();
 	~UnlitImage();
-	void onUsed();
-	void setTexture(GLuint tex);
-	void setTexture(const char* imgFile);
-	void initUniforms();
+	void loadImage(const char* imgFile);
 };
 
 #endif

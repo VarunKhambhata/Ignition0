@@ -31,12 +31,12 @@ private:
 protected:
 	glm::vec3 Color;
 	float Intensity;
+	virtual void updateUBO(const int index) = 0;
 
 public:
 	Light0();
 	void setColor(float r, float g, float b);
 	void setIntensity(float intensity);
-	virtual void updateUBO(const int index) = 0;
 
 	friend class Scene;
 };

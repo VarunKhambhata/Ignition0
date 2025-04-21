@@ -5,8 +5,8 @@
 
 #include <GL/glew.h>
 
-#include <Ignition0Core/Plane.h>
 #include <Ignition0Supplement/VoidMemory0.h>
+#include <Ignition0Core/Plane.h>
 
 static VoidMemory0 planeSharedMem;
 
@@ -57,19 +57,12 @@ Plane::~Plane() {
     }
 }
 
-void Plane::onDraw(const RenderView& rView) {
-	material->use();
-
-    glm::mat4 mvp = rView.Projection * getGlobalTransformation();
-    material->sharedUniforms.mvp = &mvp;
-
+void Plane::onDraw(RenderInfo& rInfo) {
     if(material->sharedUniforms.model.hasLocation)
         material->sharedUniforms.model = &getGlobalTransformation();
-    
-    if(material->sharedUniforms.camPosition.hasLocation)
-        material->sharedUniforms.camPosition = rView.Position;
 
-	material->updateSharedUniforms();
+    material->use();
+
 	glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, rInfo.DrawInstances);
 }

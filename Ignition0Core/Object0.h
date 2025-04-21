@@ -6,30 +6,29 @@
 #ifndef __OBJECT0__
 #define __OBJECT0__
 
-#include <memory>
 #include <vector>
 
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-
-#include <Ignition0Core/InternalIgnition0.h>
-#include <Ignition0Core/RenderView.h>
+#include <Ignition0Core/Ignition0Environment.h>
+#include <Ignition0Core/RenderInfo.h>
+#include <Ignition0Core/Material0.h>
 #include <Ignition0Core/Script0.h>
 
 class Object0 {
 private:
 	glm::mat4 TransfromationGlobal, Orientation;
-
+	
 	std::vector<m<Object0>> child;
 	std::vector<m<Script0>> script;
 
-	void draw(const RenderView& rView);
-	uint8_t update(const glm::mat4& parentTransform, uint8_t parentState = 0);
+	static bool drawAllowed;
+
+	void 	draw(RenderInfo& rInfo);
+	uint8_t update(const glm::mat4& parentTransform, uint8_t parentState = 0);	
 
 protected:
 	bool visible, childVisible;
 	glm::vec3 Position, Rotation, Scale;
-	m<Material0> material = internal::Ignition0.missing;
+	m<Material0> material;
 
 	uint8_t PENDING_STATE, STATE;
 	enum {
@@ -40,27 +39,22 @@ protected:
 		CHILD_ADDED      = 16,
 	};
 
-	enum AttribLocation {
-		VERTEX  = 0,
-		TEXTURE = 1,
-		NORMAL  = 2,
-	};
-
-	void 		 normalizeRotation();
-	glm::mat4&   getGlobalTransformation();
-	void 		 childList(std::vector<m<Object0>>::iterator& begin, std::vector<m<Object0>>::iterator& end);
+	void 		  normalizeRotation();
+	glm::mat4&    getGlobalTransformation();
+	void 		  childList(std::vector<m<Object0>>::iterator& begin, std::vector<m<Object0>>::iterator& end);
 
 	virtual void  applyStateUpdate();
 	virtual bool  onExtension();
-	virtual void  onDraw(const RenderView& rView);
-	virtual const glm::mat4& prepChildUpdateTransformation();
-	static  void  requestDraw(Object0& object, const RenderView& rView);
+	virtual void  onDraw(RenderInfo& rInfo);
+	static  void  requestDraw(Object0& object, RenderInfo& rInfo);
+	virtual const 
+	glm::mat4& 	  prepChildUpdateTransformation();
 
 public:
 	Object0();
 
 	void add(m<Object0> obj);
-	void addScript(m<Script0> script);
+	void add(m<Script0> script);
 	void setMaterial(m<Material0> mat);
 	void setVisible(bool visibility);
 	void extend(void callback(const void*), const void *obj);

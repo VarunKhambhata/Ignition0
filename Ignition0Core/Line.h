@@ -11,10 +11,11 @@
 class Line: public Object0 {
 private:
 	unsigned int VAO, VBO;
+	void onDraw(RenderInfo& rInfo) override;
+	
 public:
 	Line();
 	~Line();
-	void onDraw(const RenderView& rView) override;
 };
 
 #endif

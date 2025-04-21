@@ -12,7 +12,7 @@ class CamControler: public Script0 {
 
 	void update() {
 		float move = 25 * InternalIgnition0::deltaTime();
-		float look = move * 6;
+		float look = move * 4;
 
 		if(Keys.a.hold) translate(-move, 0,  0   );
 		if(Keys.d.hold) translate( move, 0,  0   );
@@ -24,6 +24,6 @@ class CamControler: public Script0 {
 		
 		rotate(Mouse.y.delta? (Mouse.y.delta > 0 ? -look : look) : 0,
 			   Mouse.x.delta? (Mouse.x.delta < 0 ? look : -look) : 0,
-			   -look * Keys.q.hold +  look * Keys.e.hold);
+			   0);
 	}
 };

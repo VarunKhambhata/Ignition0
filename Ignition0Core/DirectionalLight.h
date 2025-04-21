@@ -12,9 +12,16 @@ class DirectionalLight: public Light0 {
 private:
 	glm::vec3 Direction;
 
+protected:
+	void updateUBO(const int index) override;
+
 public:
-	void updateUBO(const int index);
 	void applyStateUpdate() override final;
+
+	struct Properties {
+		glm::vec4 direction;
+		glm::vec4 properties;
+	};
 };
 
 #endif

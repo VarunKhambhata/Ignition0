@@ -8,9 +8,10 @@ build_threads = 6
 link_linux = ['glfw', 'GL', 'GLEW']
 link_windows = ['glew32', 'opengl32', 'glfw3', 'gdi32']
 
-src = [	
+src = [
 	'Ignition0.cpp',
 	'Ignition0Core/Camera.cpp',
+	'Ignition0Core/ColorImage2D.cpp',
 	'Ignition0Core/Cube.cpp',
 	'Ignition0Core/DirectionalLight.cpp',
 	'Ignition0Core/IgnitionInputs.cpp',
@@ -18,21 +19,23 @@ src = [
 	'Ignition0Core/Line.cpp',
 	'Ignition0Core/LitColor.cpp',
 	'Ignition0Core/LitImage.cpp',
+	'Ignition0Core/MassRender.cpp',
 	'Ignition0Core/Material0.cpp',
 	'Ignition0Core/Model.cpp',
 	'Ignition0Core/Object0.cpp',
 	'Ignition0Core/Plane.cpp',
 	'Ignition0Core/PointLight.cpp',
-	'Ignition0Core/RenderView.cpp',
+	'Ignition0Core/RenderInfo.cpp',
 	'Ignition0Core/Scene.cpp',
 	'Ignition0Core/Script0.cpp',
 	'Ignition0Core/Sphere.cpp',
 	'Ignition0Core/UnlitColor.cpp',
 	'Ignition0Core/UnlitImage.cpp',
+	'Ignition0Supplement/ImageUtil0.cpp',
 	'Ignition0Supplement/VoidMemory0.cpp',
 ]
 
-#############################################################################################
+######################################################################################################################
 import os
 import re
 import sys

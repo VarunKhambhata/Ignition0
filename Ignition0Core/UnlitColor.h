@@ -10,21 +10,19 @@
 
 class UnlitColor: public Material0 {
 private:
-	GLint uniR, uniG, uniB;
+	UniformLink<float> red;
+	UniformLink<float> green;
+	UniformLink<float> blue;
+
+protected:
+	void onUsed() override;
+	void initUniforms() override;
+	std::string fragmentShaderSource() override;
+	std::string vertexShaderSource() override;
+	AttribNames bindShaderAttribs() override;
 
 public:
-	struct {
-		float r,g,b;
-	} uniforms;
-
-	std::string fragmentShaderSource();
-	std::string vertexShaderSource();
-
 	UnlitColor(float r, float g, float b);
-	~UnlitColor();
-	void onUsed();
-	void initUniforms();
-	void onUniformsUpdate();
 };
 
 #endif

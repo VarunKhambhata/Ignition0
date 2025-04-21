@@ -12,10 +12,12 @@ class Plane: public Object0 {
 private:
 	unsigned int VAO, VBO;
 
+protected:
+	void onDraw(RenderInfo& rInfo) override;
+
 public:
 	Plane();
 	~Plane();
-	void onDraw(const RenderView& rView) override;
 };
 
 #endif
