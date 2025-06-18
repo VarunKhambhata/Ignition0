@@ -70,7 +70,7 @@ std::string LitImage::fragmentShaderSource() {
 
 		void main()
 		{
-		    vec3 effect;
+		    vec3 effect = vec3(0);
 	    	vec3 norm    = normalize(Normal);
 	    	vec3 viewDir = normalize(viewPos - FragPos);
 
@@ -80,7 +80,7 @@ std::string LitImage::fragmentShaderSource() {
 	    	for(int i = 0; i < getMaxPointLights(); i++)
 				effect += PointLightEffect(i, viewDir, norm, FragPos, ambientStrength, diffStrength, specularStrength, shininess);
 
-		    FragColor = texture2D(tex, TexCoords);
+		    FragColor = texture(tex, TexCoords);
 		    FragColor.rgb *= effect;
 		}
     )";

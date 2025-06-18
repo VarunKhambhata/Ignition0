@@ -32,7 +32,7 @@ std::string ColorImage2D::fragmentShaderSource() {
 
 		void main()
 		{ 
-		    FragColor = texture2D(tex, TexCoords);
+		    FragColor = texture(tex, TexCoords);
 		}
     )";
 }

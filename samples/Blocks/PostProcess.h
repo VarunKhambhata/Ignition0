@@ -50,7 +50,7 @@ protected:
 
             void main()
             { 
-                FragColor = texture2D(tex, TexCoords);
+                FragColor = texture(tex, TexCoords);
                 FragColor.rgb = adjustContrast(FragColor.rgb, 1.35);
                 FragColor.rgb = addNoise(TexCoords, FragColor.rgb, 0.1);
             }

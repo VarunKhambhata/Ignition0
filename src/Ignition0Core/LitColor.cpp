@@ -62,7 +62,7 @@ std::string LitColor::fragmentShaderSource() {
 
 	    void main()
 	    {
-	    	vec3 effect;
+	    	vec3 effect = vec3(0);
 	    	vec3 norm    = normalize(Normal);
 	    	vec3 viewDir = normalize(ViewPos - FragPos);
 			
