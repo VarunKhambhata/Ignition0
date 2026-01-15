@@ -1,4 +1,4 @@
-<pre>
+<pre align="center">	
   <b>
  ______                          __                                __     
 /\__  _\                     __ /\ \__  __                       /'__`\   
@@ -10,7 +10,7 @@
                /\____/                                                    
                \_/__/                                                     
   </b>
-  <p align="center" >A Graphics Engine</p>
+  Graphics Engine
 </pre>
 
 Igntion0 engine features:<br>
